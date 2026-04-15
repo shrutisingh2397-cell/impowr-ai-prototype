@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMPOWR AI — Smart Data Assistant</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --navy:       #1a2b4a;
+    --navy2:      #152240;
+    --navy3:      #1f3258;
+    --orange:     #f05a28;
+    --orange2:    #ff6b35;
+    --orange-bg:  rgba(240,90,40,0.08);
+    --orange-bdr: rgba(240,90,40,0.25);
+    --white:      #ffffff;
+    --off-white:  #f8f9fc;
+    --text:       #1a2b4a;
+    --text2:      #4a5568;
+    --text3:      #8896a8;
+    --border:     rgba(26,43,74,0.1);
+    --border2:    rgba(26,43,74,0.05);
+    --green:      #10b981;
+    --red:        #ef4444;
+    --amber:      #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--off-white);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 268px; flex-shrink: 0;
+    background: var(--navy);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .logo-wordmark {
+    font-size: 24px; font-weight: 800;
+    color: #ffffff; letter-spacing: -0.5px; line-height: 1;
+  }
+  .logo-wordmark .o-letter { color: var(--orange); }
+  .logo-sub {
+    font-size: 10px; color: rgba(255,255,255,0.38);
+    font-weight: 400; margin-top: 4px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+
+  .org-switcher {
+    margin: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px; overflow: hidden;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .org-label {
+    font-size: 9px; font-weight: 600;
+    color: rgba(255,255,255,0.32);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 10px 12px 4px;
+  }
+
+  .org-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px 10px;
+    width: 100%; background: none; border: none;
+    color: white; text-align: left; cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .org-btn:hover { background: rgba(255,255,255,0.06); }
+  .org-btn.active { background: rgba(240,90,40,0.16); }
+  .blocked-org { opacity: 0.42; cursor: not-allowed !important; }
+
+  .org-avatar {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .av-orange { background: var(--orange); color: white; }
+  .av-gray   { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+
+  .org-info { flex: 1; min-width: 0; }
+  .org-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .org-role { font-size: 10px; color: rgba(255,255,255,0.38); }
+  .org-sep  { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
+  .org-lock { width: 14px; height: 14px; flex-shrink: 0; color: rgba(255,255,255,0.28); }
+
+  .security-badge {
+    margin: 0 12px 8px;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.22);
+    border-radius: 8px; padding: 7px 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .sec-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .sec-text { font-size: 10px; color: rgba(110,231,183,0.9); font-weight: 500; }
+
+  .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+
+  .nav-section-label {
+    font-size: 9px; font-weight: 600;
+    color: rgba(255,255,255,0.28);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 8px 8px 4px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    cursor: pointer; transition: background 0.15s;
+    font-size: 12px; color: rgba(255,255,255,0.52);
+    border: none; background: none; width: 100%;
+    text-align: left; margin-bottom: 1px;
+    font-family: 'Inter', sans-serif;
+  }
+  .nav-item:hover  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.82); }
+  .nav-item.active { background: rgba(240,90,40,0.18); color: #ff8a65; }
+  .nav-icon  { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; background: var(--orange); color: white; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+
+  .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .user-av { width: 30px; height: 30px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; flex-shrink: 0; }
+  .user-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.88); }
+  .user-org  { font-size: 10px; color: rgba(255,255,255,0.38); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; background: var(--off-white); }
+
+  .header {
+    padding: 0 28px; height: 58px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: white; flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-divider { width: 1px; height: 20px; background: var(--border); }
+  .page-title { font-size: 14px; font-weight: 700; color: var(--navy); }
+  .page-sub   { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .header-pills { display: flex; gap: 8px; }
+
+  .pill { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 1px solid; }
+  .pill-orange { background: var(--orange-bg); border-color: var(--orange-bdr); color: var(--orange); }
+  .pill-green  { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); color: #059669; }
+  .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .pill-dot-orange { background: var(--orange); }
+  .pill-dot-green  { background: var(--green); }
+
+  /* Chat */
+  .chat-area {
+    flex: 1; overflow-y: auto; padding: 28px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .welcome { text-align: center; padding: 36px 20px; }
+  .welcome-icon { width: 60px; height: 60px; background: var(--orange-bg); border: 1px solid var(--orange-bdr); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 18px; }
+  .welcome h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--navy); }
+  .welcome p  { font-size: 13px; color: var(--text2); max-width: 400px; margin: 0 auto 24px; line-height: 1.65; }
+
+  .suggestion-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; max-width: 560px; margin: 0 auto; }
+
+  .suggestion-btn {
+    background: white; border: 1px solid var(--border); border-radius: 10px;
+    padding: 13px 15px; text-align: left; cursor: pointer;
+    transition: all 0.15s; color: var(--text);
+    font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.5;
+  }
+  .suggestion-btn:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240,90,40,0.1); }
+  .suggestion-icon { font-size: 16px; margin-bottom: 6px; display: block; }
+
+  /* Messages */
+  .msg { display: flex; gap: 12px; max-width: 900px; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+
+  .msg-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .av-ai   { background: var(--navy);   color: white; }
+  .av-user { background: var(--orange); color: white; }
+
+  .msg-content { flex: 1; min-width: 0; }
+  .msg-bubble  { padding: 13px 16px; border-radius: 12px; font-size: 13px; line-height: 1.65; }
+  .bubble-user { background: var(--navy); color: rgba(255,255,255,0.92); border-radius: 12px 4px 12px 12px; }
+  .bubble-ai   { background: white; border: 1px solid var(--border); color: var(--text); border-radius: 4px 12px 12px 12px; box-shadow: 0 1px 4px rgba(26,43,74,0.06); }
+  .msg-meta    { font-size: 10px; color: var(--text3); margin-top: 4px; }
+  .msg.user .msg-meta { text-align: right; }
+
+  /* Security trace */
+  .security-trace { background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.18); border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-family: 'Courier New', monospace; font-size: 10px; }
+  .trace-title   { color: #059669; font-weight: 700; margin-bottom: 6px; }
+  .trace-line    { color: var(--text3); margin-bottom: 2px; }
+  .trace-line.sql     { color: var(--navy3); }
+  .trace-line.pass    { color: #059669; }
+  .trace-line.blocked { color: var(--red); }
+
+  /* Tables */
+  .result-table { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: white; }
+  .result-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--off-white); border-bottom: 1px solid var(--border); }
+  .result-title  { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.05em; }
+  .result-count  { font-size: 11px; color: var(--text3); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; padding: 9px 16px; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; background: #fafbfc; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 16px; font-size: 12px; color: var(--text2); border-bottom: 1px solid var(--border2); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbfc; }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+  .s-stable   { background: rgba(16,185,129,0.1);  color: #059669; }
+  .s-risk     { background: rgba(239,68,68,0.1);   color: #dc2626; }
+  .s-progress { background: rgba(245,158,11,0.1);  color: #d97706; }
+  .s-new      { background: rgba(26,43,74,0.08);   color: var(--navy); }
+
+  /* Metrics */
+  .metric-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
+  .metric-card { background: var(--off-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .metric-card.accent { background: var(--orange); border-color: var(--orange); }
+  .metric-label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+  .metric-value { font-size: 22px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px; }
+  .metric-sub   { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .metric-up    { color: var(--green) !important; }
+  .metric-down  { color: var(--orange) !important; }
+  .metric-card.accent .metric-label,
+  .metric-card.accent .metric-value,
+  .metric-card.accent .metric-sub { color: white !important; }
+
+  /* Access denied */
+  .access-denied { background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.18); border-radius: 10px; padding: 16px; margin-top: 10px; display: flex; align-items: flex-start; gap: 12px; }
+  .denied-icon  { font-size: 22px; flex-shrink: 0; }
+  .denied-title { font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 5px; }
+  .denied-body  { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .denied-trace { font-family: 'Courier New', monospace; font-size: 10px; color: var(--text3); margin-top: 10px; background: #fef2f2; padding: 8px 10px; border-radius: 6px; }
+
+  /* Thinking */
+  .thinking { display: flex; align-items: center; gap: 10px; padding: 13px 16px; background: white; border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; font-size: 12px; color: var(--text3); box-shadow: 0 1px 4px rgba(26,43,74,0.06); }
+  .thinking-dots { display: flex; gap: 4px; }
+  .thinking-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange); animation: bounce 1.2s infinite; }
+  .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,100%{transform:translateY(0);opacity:0.3} 50%{transform:translateY(-4px);opacity:1} }
+
+  /* Input */
+  .input-area { padding: 16px 28px 20px; border-top: 1px solid var(--border); background: white; flex-shrink: 0; }
+  .input-wrapper { display: flex; align-items: flex-end; gap: 10px; background: var(--off-white); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; transition: border-color 0.2s; }
+  .input-wrapper:focus-within { border-color: var(--orange); }
+
+  #queryInput { flex: 1; background: none; border: none; outline: none; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); resize: none; min-height: 20px; max-height: 100px; line-height: 1.5; }
+  #queryInput::placeholder { color: var(--text3); }
+
+  .send-btn { width: 36px; height: 36px; border-radius: 9px; background: var(--orange); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+  .send-btn:hover    { background: var(--orange2); transform: scale(1.04); }
+  .send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+
+  .input-hint { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--text3); }
+  .hint-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hint-pill { padding: 4px 9px; border-radius: 20px; background: var(--off-white); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; color: var(--text3); font-size: 10px; font-weight: 500; font-family: 'Inter', sans-serif; }
+  .hint-pill:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
+
+  .info-box { margin-top: 10px; padding: 10px 14px; background: var(--orange-bg); border: 1px solid var(--orange-bdr); border-left: 3px solid var(--orange); border-radius: 0 8px 8px 0; font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .info-box strong { color: var(--navy); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-wordmark">IMP<span class="o-letter">O</span>WR</div>
+      <div class="logo-sub">AI Data Assistant · Beta</div>
+    </div>
+
+    <div style="padding:10px 12px 4px">
+      <div class="org-label">Active Organization</div>
+    </div>
+
+    <div class="org-switcher">
+      <button class="org-btn active">
+        <div class="org-avatar av-orange">RH</div>
+        <div class="org-info">
+          <div class="org-name">Rochester Housing First</div>
+          <div class="org-role">Manager · Org ID: 42</div>
+        </div>
+      </button>
+      <div class="org-sep"></div>
+      <div class="org-label" style="padding-top:6px">Other Organizations</div>
+      <button class="org-btn blocked-org" onclick="showBlockedAlert()">
+        <div class="org-avatar av-gray">BH</div>
+        <div class="org-info">
+          <div class="org-name">Buffalo Health Services</div>
+          <div class="org-role">Org ID: 17 · No Access</div>
+        </div>
+        <svg class="org-lock" viewBox="0 0 16 16" fill="none">
+          <rect x="3" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="security-badge">
+      <div class="sec-dot"></div>
+      <div class="sec-text">Azure RLS Active · HIPAA Compliant</div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Queries</div>
+      <button class="nav-item active"><span class="nav-icon">💬</span> AI Assistant <span class="nav-badge">Live</span></button>
+      <button class="nav-item"><span class="nav-icon">📊</span> Saved Reports</button>
+      <button class="nav-item"><span class="nav-icon">📋</span> Grant Reports</button>
+      <div class="nav-section-label" style="margin-top:8px">Data</div>
+      <button class="nav-item"><span class="nav-icon">👥</span> Clients</button>
+      <button class="nav-item"><span class="nav-icon">📅</span> Appointments</button>
+      <button class="nav-item"><span class="nav-icon">🏠</span> Housing Outcomes</button>
+      <div class="nav-section-label" style="margin-top:8px">Compliance</div>
+      <button class="nav-item"><span class="nav-icon">🔍</span> Audit Logs</button>
+      <button class="nav-item"><span class="nav-icon">🛡️</span> Security Policy</button>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-av">SM</div>
+        <div>
+          <div class="user-name">Sarah Martinez</div>
+          <div class="user-org">Program Manager · Org 42</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="header">
+      <div class="header-left">
+        <div>
+          <div class="page-title">AI Data Assistant</div>
+          <div class="page-sub">Rochester Housing First · Org ID 42</div>
+        </div>
+        <div class="header-divider"></div>
+        <div style="font-size:12px;color:var(--text3)">Powered by Azure OpenAI GPT-4.1</div>
+      </div>
+      <div class="header-pills">
+        <div class="pill pill-green"><div class="pill-dot pill-dot-green"></div>RLS Active</div>
+        <div class="pill pill-orange"><div class="pill-dot pill-dot-orange"></div>HIPAA Compliant</div>
+      </div>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-icon">🤖</div>
+        <h2>Ask anything about your clients</h2>
+        <p>No SQL needed. Type in plain English and get instant answers — securely scoped to Rochester Housing First only.</p>
+        <div class="suggestion-grid">
+          <button class="suggestion-btn" onclick="ask('How many clients achieved stable housing in Q1 2025?')">
+            <span class="suggestion-icon">🏠</span>How many clients achieved stable housing in Q1 2025?
+          </button>
+          <button class="suggestion-btn" onclick="ask('Show me clients who missed 3 or more appointments this month')">
+            <span class="suggestion-icon">⚠️</span>Show me clients who missed 3+ appointments this month
+          </button>
+          <button class="suggestion-btn" onclick="ask('Generate a summary report for our SAMHSA grant renewal')">
+            <span class="suggestion-icon">📄</span>Generate our SAMHSA grant summary report
+          </button>
+          <button class="suggestion-btn" onclick="ask('Show me all clients from Buffalo Health Services org')">
+            <span class="suggestion-icon">🔒</span>Demo: try accessing another org's data
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea id="queryInput" placeholder="Ask about your clients, outcomes, or generate a grant report..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendQuery()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/></svg>
+        </button>
+      </div>
+      <div class="input-hint">
+        <div class="hint-pills">
+          <button class="hint-pill" onclick="ask('How many clients do we have total?')">Overview</button>
+          <button class="hint-pill" onclick="ask('Show me at-risk clients this week')">At-risk</button>
+          <button class="hint-pill" onclick="ask('What is our housing placement rate?')">Placement rate</button>
+          <button class="hint-pill" onclick="ask('Generate a summary report for our SAMHSA grant renewal')">Grant report</button>
+          <button class="hint-pill" onclick="ask('Show me all clients from Buffalo Health Services org')">🔒 Cross-org demo</button>
+        </div>
+        <span>Org 42 scoped · Azure RLS enforced</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = {
+  clients: [
+    {id:'C-1042',name:'James W.',   status:'Stable',      cw:'R. Thompson',lastContact:'2025-04-10',housing:'Permanent',   missed:0},
+    {id:'C-1087',name:'Maria L.',   status:'At Risk',     cw:'K. Johnson', lastContact:'2025-04-01',housing:'Transitional',missed:3},
+    {id:'C-1103',name:'David K.',   status:'In Progress', cw:'R. Thompson',lastContact:'2025-04-08',housing:'Shelter',     missed:1},
+    {id:'C-1119',name:'Sarah P.',   status:'Stable',      cw:'M. Davis',   lastContact:'2025-04-11',housing:'Permanent',   missed:0},
+    {id:'C-1134',name:'Robert A.',  status:'At Risk',     cw:'K. Johnson', lastContact:'2025-03-28',housing:'Shelter',     missed:4},
+    {id:'C-1156',name:'Jennifer M.',status:'In Progress', cw:'M. Davis',   lastContact:'2025-04-09',housing:'Transitional',missed:2},
+    {id:'C-1178',name:'Michael T.', status:'Stable',      cw:'R. Thompson',lastContact:'2025-04-12',housing:'Permanent',   missed:0},
+    {id:'C-1192',name:'Lisa G.',    status:'New',         cw:'K. Johnson', lastContact:'2025-04-13',housing:'Shelter',     missed:0},
+  ]
+};
+
+function sc(s){ return s==='Stable'?'s-stable':s==='At Risk'?'s-risk':s==='In Progress'?'s-progress':'s-new'; }
+
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendQuery();} }
+function scrollBot(){ const ca=document.getElementById('chatArea'); ca.scrollTop=ca.scrollHeight; }
+function hideWelcome(){ const w=document.getElementById('welcomeScreen'); if(w) w.style.display='none'; }
+
+function ask(q){ hideWelcome(); document.getElementById('queryInput').value=q; sendQuery(); }
+
+function addMsg(role,content){
+  hideWelcome();
+  const ca=document.getElementById('chatArea');
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if(role==='user'){
+    d.innerHTML=`<div class="msg-avatar av-user">SM</div><div class="msg-content"><div class="msg-bubble bubble-user">${content}</div><div class="msg-meta">${t} · Sarah Martinez</div></div>`;
+  } else {
+    d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${content}</div><div class="msg-meta">IMPOWR AI · ${t} · Scoped to Org 42</div></div>`;
+  }
+  ca.appendChild(d); scrollBot();
+}
+
+function addThinking(){
+  hideWelcome();
+  const ca=document.getElementById('chatArea');
+  const d=document.createElement('div');
+  d.className='msg'; d.id='thinking';
+  d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="thinking"><div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div><span>Translating to SQL → Verifying Org 42 → Executing...</span></div></div>`;
+  ca.appendChild(d); scrollBot();
+}
+
+function removeThinking(){ const t=document.getElementById('thinking'); if(t) t.remove(); }
+
+function addAI(html){
+  removeThinking();
+  const ca=document.getElementById('chatArea');
+  const d=document.createElement('div');
+  d.className='msg';
+  const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${html}</div><div class="msg-meta">IMPOWR AI · ${t} · Azure GPT-4.1 · Org 42 scoped</div></div>`;
+  ca.appendChild(d); scrollBot();
+}
+
+function trace(sql,ok){
+  const checks=ok
+    ?`<div class="trace-line pass">✓ Identity: sarah.martinez · OrgID = 42</div>
+      <div class="trace-line pass">✓ SQL validated: SELECT only, OrgID=42 enforced</div>
+      <div class="trace-line pass">✓ Azure SQL RLS: fn_OrgFilter confirmed Org 42</div>
+      <div class="trace-line pass">✓ PHI masking: last names truncated</div>`
+    :`<div class="trace-line blocked">✗ Cross-org query: target OrgID ≠ 42</div>
+      <div class="trace-line blocked">✗ Blocked at middleware — SQL never executed</div>
+      <div class="trace-line blocked">✗ Azure SQL RLS would block at DB layer regardless</div>`;
+  return `<div class="security-trace"><div class="trace-title">🔐 Security Trace — Azure RLS</div><div class="trace-line sql">SQL: ${sql}</div>${checks}<div class="trace-line">Logged → Azure Monitor · ${new Date().toISOString()}</div></div>`;
+}
+
+function intent(q){
+  q=q.toLowerCase();
+  if(q.includes('buffalo')||q.includes('org 17')||q.includes('another org')||q.includes('other org')) return 'blocked';
+  if(q.includes('stable')||q.includes('q1')||q.includes('housed')) return 'q1';
+  if(q.includes('missed')||q.includes('risk')||q.includes('appointment')) return 'risk';
+  if(q.includes('samhsa')||q.includes('grant')||q.includes('report')||q.includes('funder')) return 'grant';
+  if(q.includes('placement')||q.includes('rate')) return 'rate';
+  if(q.includes('how many')||q.includes('total')||q.includes('overview')||q.includes('count')) return 'overview';
+  return 'list';
+}
+
+function buildReply(i){
+  if(i==='q1'){
+    const stable=DB.clients.filter(c=>c.status==='Stable');
+    const rows=stable.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td>${c.cw}</td><td>${c.lastContact}</td><td>${c.housing}</td><td><span class="status-badge s-stable">● Stable</span></td></tr>`).join('');
+    return `Found <strong style="color:var(--navy)">47 clients</strong> who achieved stable housing in Q1 2025 — <span style="color:var(--green);font-weight:600">↑ 12% vs Q4 2024</span>.
+      <div class="metric-row">
+        <div class="metric-card accent"><div class="metric-label">Stable Housing</div><div class="metric-value">47</div><div class="metric-sub">Q1 2025</div></div>
+        <div class="metric-card"><div class="metric-label">Placement Rate</div><div class="metric-value">62%</div><div class="metric-sub metric-up">↑ 5pts vs target</div></div>
+        <div class="metric-card"><div class="metric-label">Avg Days</div><div class="metric-value">34</div><div class="metric-sub metric-up">↓ 8 days faster</div></div>
+        <div class="metric-card"><div class="metric-label">Total Active</div><div class="metric-value">183</div><div class="metric-sub">clients today</div></div>
+      </div>
+      <div class="result-table">
+        <div class="result-header"><span class="result-title">Stably Housed Clients</span><span class="result-count">Showing ${stable.length} of 47 · Org 42 only</span></div>
+        <table><thead><tr><th>Client ID</th><th>Name</th><th>Caseworker</th><th>Last Contact</th><th>Housing Type</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      ${trace("SELECT * FROM Clients WHERE OrgID=42 AND HousingStatus='Stable' AND OutcomeDate BETWEEN '2025-01-01' AND '2025-03-31'",true)}`;
+  }
+  if(i==='risk'){
+    const at=DB.clients.filter(c=>c.missed>=3||c.status==='At Risk');
+    const rows=at.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td style="color:var(--red);font-weight:600">${c.missed}</td><td>${c.cw}</td><td>${c.lastContact}</td><td><span class="status-badge s-risk">● High Risk</span></td></tr>`).join('');
+    return `<span style="color:var(--red);font-weight:700">⚠ ${at.length} clients flagged at-risk</span> — missed 3+ appointments or marked high-risk. Immediate follow-up needed.
+      <div class="result-table">
+        <div class="result-header"><span class="result-title">At-Risk Clients</span><span class="result-count">${at.length} records · Org 42 only</span></div>
+        <table><thead><tr><th>Client ID</th><th>Name</th><th>Missed Appts</th><th>Caseworker</th><th>Last Contact</th><th>Risk</th></tr></thead><tbody>${rows}</tbody></table>
+      </div>
+      <div class="info-box"><strong>Recommended:</strong> K. Johnson's caseload has the highest risk concentration. Schedule outreach calls this week before these clients disengage.</div>
+      ${trace("SELECT * FROM Clients WHERE OrgID=42 AND (MissedAppointments >= 3 OR RiskScore='High')",true)}`;
+  }
+  if(i==='grant'){
+    return `<strong style="color:var(--navy)">SAMHSA Grant Summary — Q1 2025</strong><br><span style="font-size:12px;color:var(--text3)">Auto-generated from IMPOWR · Rochester Housing First · Org 42</span>
+      <div class="metric-row">
+        <div class="metric-card accent"><div class="metric-label">Clients Served</div><div class="metric-value">183</div><div class="metric-sub">unduplicated</div></div>
+        <div class="metric-card"><div class="metric-label">Housed Q1</div><div class="metric-value">47</div><div class="metric-sub metric-up">↑ 12% YoY</div></div>
+        <div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above 80% target</div></div>
+        <div class="metric-card"><div class="metric-label">Cost/Client</div><div class="metric-value">$2,847</div><div class="metric-sub metric-up">↓ 6% vs budget</div></div>
+      </div>
+      <div class="result-table">
+        <div class="result-header"><span class="result-title">SAMHSA Required Metrics</span><span class="result-count">Auto-populated · Ready to export</span></div>
+        <table><thead><tr><th>SAMHSA Metric</th><th>Required</th><th>Achieved</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Unduplicated clients served</td><td>150+</td><td style="font-weight:600;color:var(--navy)">183</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
+          <tr><td>Housing placement rate</td><td>55%</td><td style="font-weight:600;color:var(--navy)">62%</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
+          <tr><td>90-day housing retention</td><td>80%</td><td style="font-weight:600;color:var(--navy)">84%</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
+          <tr><td>Avg days to placement</td><td>&lt;45 days</td><td style="font-weight:600;color:var(--navy)">34 days</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
+          <tr><td>Mental health assessments</td><td>100%</td><td style="font-weight:600;color:var(--red)">91%</td><td><span class="status-badge s-risk">⚠ Gap: 9%</span></td></tr>
+        </tbody></table>
+      </div>
+      <div class="info-box"><strong>One gap detected:</strong> 17 clients missing mental health assessments. Follow up before SAMHSA deadline. All other metrics exceed requirements — strong case for renewal.</div>
+      ${trace("SELECT metrics FROM GrantReporting WHERE OrgID=42 AND Period='Q1-2025' AND GrantType='SAMHSA'",true)}`;
+  }
+  if(i==='rate'){
+    return `<strong style="color:var(--navy)">Housing Placement Rate — Rochester Housing First</strong>
+      <div class="metric-row">
+        <div class="metric-card accent"><div class="metric-label">Your Rate</div><div class="metric-value">62%</div><div class="metric-sub">Q1 2025</div></div>
+        <div class="metric-card"><div class="metric-label">SAMHSA Target</div><div class="metric-value">55%</div><div class="metric-sub">minimum</div></div>
+        <div class="metric-card"><div class="metric-label">National Avg</div><div class="metric-value">51%</div><div class="metric-sub">sector benchmark</div></div>
+        <div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above benchmark</div></div>
+      </div>
+      <div class="info-box">You outperform the national sector average by <strong>11 percentage points</strong> — compelling evidence for your SAMHSA grant renewal narrative.</div>
+      ${trace("SELECT AVG(PlacementRate) FROM OutcomeMetrics WHERE OrgID=42 AND Period='2025-Q1'",true)}`;
+  }
+  if(i==='overview'){
+    return `Here is your current dashboard for <strong style="color:var(--navy)">Rochester Housing First</strong>:
+      <div class="metric-row">
+        <div class="metric-card accent"><div class="metric-label">Total Clients</div><div class="metric-value">183</div><div class="metric-sub">active cases</div></div>
+        <div class="metric-card"><div class="metric-label">Stably Housed</div><div class="metric-value">89</div><div class="metric-sub metric-up">↑ 62% rate</div></div>
+        <div class="metric-card"><div class="metric-label">At Risk</div><div class="metric-value">24</div><div class="metric-sub" style="color:var(--red)">needs follow-up</div></div>
+        <div class="metric-card"><div class="metric-label">New This Month</div><div class="metric-value">12</div><div class="metric-sub">intakes</div></div>
+      </div>
+      ${trace("SELECT COUNT(*), HousingStatus FROM Clients WHERE OrgID=42 GROUP BY HousingStatus",true)}`;
+  }
+  const rows=DB.clients.slice(0,6).map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td><span class="status-badge ${sc(c.status)}">● ${c.status}</span></td><td>${c.cw}</td><td>${c.lastContact}</td></tr>`).join('');
+  return `Recent clients for <strong style="color:var(--navy)">Rochester Housing First</strong>:
+    <div class="result-table">
+      <div class="result-header"><span class="result-title">Client List</span><span class="result-count">Showing 6 of 183 · Org 42 only</span></div>
+      <table><thead><tr><th>Client ID</th><th>Name</th><th>Status</th><th>Caseworker</th><th>Last Contact</th></tr></thead><tbody>${rows}</tbody></table>
+    </div>
+    ${trace("SELECT TOP 6 * FROM Clients WHERE OrgID=42 ORDER BY LastContact DESC",true)}`;
+}
+
+function showBlockedAlert(){
+  addMsg('user','Show me all clients from Buffalo Health Services org');
+  addThinking();
+  setTimeout(()=>{
+    removeThinking();
+    const ca=document.getElementById('chatArea');
+    const d=document.createElement('div');
+    d.className='msg';
+    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">
+      <div class="access-denied">
+        <div class="denied-icon">🚫</div>
+        <div>
+          <div class="denied-title">Access Denied — Cross-Organization Query Blocked</div>
+          <div class="denied-body">You requested data from <strong>Buffalo Health Services (Org ID: 17)</strong>. Your account is authorized only for <strong>Rochester Housing First (Org ID: 42)</strong>.<br><br>
+          Blocked at <strong>two independent security layers:</strong><br>
+          <span style="color:var(--red)">Layer 1:</span> AI middleware rejected — SQL was never generated.<br>
+          <span style="color:var(--red)">Layer 2:</span> Azure SQL RLS would filter all Org 17 rows at the database engine level regardless.</div>
+          <div class="denied-trace">SECURITY EVENT · User: sarah.martinez · OrgID: 42 · Requested: OrgID 17<br>RLS: fn_OrgFilter(17) → ACCESS DENIED — OrgID 17 ≠ SESSION_CONTEXT OrgID 42<br>Logged → Azure Monitor · ${new Date().toISOString()}</div>
+        </div>
+      </div>
+    </div><div class="msg-meta">IMPOWR AI · ${t} · Security event logged</div></div>`;
+    ca.appendChild(d); scrollBot();
+  },1100);
+}
+
+let busy=false;
+
+async function sendQuery(){
+  if(busy) return;
+  const inp=document.getElementById('queryInput');
+  const q=inp.value.trim();
+  if(!q) return;
+  inp.value=''; inp.style.height='auto';
+  busy=true; document.getElementById('sendBtn').disabled=true;
+  addMsg('user',q);
+  addThinking();
+  const i=intent(q);
+  await new Promise(r=>setTimeout(r,i==='blocked'?900:1300+Math.random()*500));
+  if(i==='blocked'){
+    removeThinking();
+    showBlockedAlert();
+    busy=false; document.getElementById('sendBtn').disabled=false;
+    return;
+  }
+  addAI(buildReply(i));
+  busy=false; document.getElementById('sendBtn').disabled=false;
+}
+</script>
+</body>
+</html>
