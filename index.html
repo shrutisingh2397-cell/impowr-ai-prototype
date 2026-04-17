@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IMPOWR AI — Smart Data Assistant</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -15,7 +16,6 @@
     --orange2:    #ff6b35;
     --orange-bg:  rgba(240,90,40,0.08);
     --orange-bdr: rgba(240,90,40,0.25);
-    --white:      #ffffff;
     --off-white:  #f8f9fc;
     --text:       #1a2b4a;
     --text2:      #4a5568;
@@ -27,271 +27,351 @@
     --amber:      #f59e0b;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--off-white); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  .app { display:flex; height:100vh; }
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--off-white);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+  /* ── SIDEBAR ── */
+  .sidebar { width:268px; flex-shrink:0; background:var(--navy); display:flex; flex-direction:column; overflow:hidden; }
 
-  .app { display: flex; height: 100vh; }
+  .sidebar-logo { padding:20px 20px 16px; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .logo-wordmark { font-size:24px; font-weight:800; color:#fff; letter-spacing:-0.5px; line-height:1; }
+  .logo-wordmark .o-letter { color:var(--orange); }
+  .logo-sub { font-size:10px; color:rgba(255,255,255,0.38); font-weight:400; margin-top:4px; letter-spacing:0.06em; text-transform:uppercase; }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: 268px; flex-shrink: 0;
-    background: var(--navy);
-    display: flex; flex-direction: column;
-    overflow: hidden;
-  }
+  .org-switcher { margin:12px; border:1px solid rgba(255,255,255,0.1); border-radius:10px; overflow:hidden; background:rgba(255,255,255,0.04); }
+  .org-label { font-size:9px; font-weight:600; color:rgba(255,255,255,0.32); text-transform:uppercase; letter-spacing:0.08em; padding:10px 12px 4px; }
+  .org-btn { display:flex; align-items:center; gap:10px; padding:8px 12px 10px; width:100%; background:none; border:none; color:white; text-align:left; cursor:pointer; transition:background 0.15s; font-family:'Inter',sans-serif; }
+  .org-btn:hover { background:rgba(255,255,255,0.06); }
+  .org-btn.active { background:rgba(240,90,40,0.16); }
+  .blocked-org { opacity:0.42; cursor:not-allowed !important; }
+  .org-avatar { width:28px; height:28px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+  .av-orange { background:var(--orange); color:white; }
+  .av-gray   { background:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); }
+  .org-info { flex:1; min-width:0; }
+  .org-name { font-size:12px; font-weight:600; color:rgba(255,255,255,0.88); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .org-role { font-size:10px; color:rgba(255,255,255,0.38); }
+  .org-sep  { height:1px; background:rgba(255,255,255,0.07); margin:4px 0; }
+  .org-lock { width:14px; height:14px; flex-shrink:0; color:rgba(255,255,255,0.28); }
 
-  .sidebar-logo {
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-
-  .logo-wordmark {
-    font-size: 24px; font-weight: 800;
-    color: #ffffff; letter-spacing: -0.5px; line-height: 1;
-  }
-  .logo-wordmark .o-letter { color: var(--orange); }
-  .logo-sub {
-    font-size: 10px; color: rgba(255,255,255,0.38);
-    font-weight: 400; margin-top: 4px;
-    letter-spacing: 0.06em; text-transform: uppercase;
-  }
-
-  .org-switcher {
-    margin: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px; overflow: hidden;
-    background: rgba(255,255,255,0.04);
-  }
-
-  .org-label {
-    font-size: 9px; font-weight: 600;
-    color: rgba(255,255,255,0.32);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 10px 12px 4px;
-  }
-
-  .org-btn {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 12px 10px;
-    width: 100%; background: none; border: none;
-    color: white; text-align: left; cursor: pointer;
-    transition: background 0.15s;
-    font-family: 'Inter', sans-serif;
-  }
-  .org-btn:hover { background: rgba(255,255,255,0.06); }
-  .org-btn.active { background: rgba(240,90,40,0.16); }
-  .blocked-org { opacity: 0.42; cursor: not-allowed !important; }
-
-  .org-avatar {
-    width: 28px; height: 28px; border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 700; flex-shrink: 0;
-  }
-  .av-orange { background: var(--orange); color: white; }
-  .av-gray   { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
-
-  .org-info { flex: 1; min-width: 0; }
-  .org-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.88); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .org-role { font-size: 10px; color: rgba(255,255,255,0.38); }
-  .org-sep  { height: 1px; background: rgba(255,255,255,0.07); margin: 4px 0; }
-  .org-lock { width: 14px; height: 14px; flex-shrink: 0; color: rgba(255,255,255,0.28); }
-
-  .security-badge {
-    margin: 0 12px 8px;
-    background: rgba(16,185,129,0.1);
-    border: 1px solid rgba(16,185,129,0.22);
-    border-radius: 8px; padding: 7px 10px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .sec-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: blink 2s infinite; }
+  .security-badge { margin:0 12px 8px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.22); border-radius:8px; padding:7px 10px; display:flex; align-items:center; gap:8px; }
+  .sec-dot  { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; animation:blink 2s infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .sec-text { font-size: 10px; color: rgba(110,231,183,0.9); font-weight: 500; }
+  .sec-text { font-size:10px; color:rgba(110,231,183,0.9); font-weight:500; }
 
-  .sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+  .sidebar-nav { flex:1; padding:8px; overflow-y:auto; }
+  .nav-section-label { font-size:9px; font-weight:600; color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.08em; padding:8px 8px 4px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; transition:background 0.15s; font-size:12px; color:rgba(255,255,255,0.52); border:none; background:none; width:100%; text-align:left; margin-bottom:1px; font-family:'Inter',sans-serif; }
+  .nav-item:hover  { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.82); }
+  .nav-item.active { background:rgba(240,90,40,0.18); color:#ff8a65; }
+  .nav-icon  { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+  .nav-badge { margin-left:auto; background:var(--orange); color:white; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; }
+  .nav-badge-new { margin-left:auto; background:rgba(16,185,129,0.2); color:#10b981; font-size:9px; font-weight:700; padding:2px 7px; border-radius:10px; border:1px solid rgba(16,185,129,0.3); }
 
-  .nav-section-label {
-    font-size: 9px; font-weight: 600;
-    color: rgba(255,255,255,0.28);
-    text-transform: uppercase; letter-spacing: 0.08em;
-    padding: 8px 8px 4px;
-  }
+  .sidebar-footer { padding:12px; border-top:1px solid rgba(255,255,255,0.08); }
+  .user-card { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); }
+  .user-av   { width:30px; height:30px; border-radius:50%; background:var(--orange); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:white; flex-shrink:0; }
+  .user-name { font-size:12px; font-weight:600; color:rgba(255,255,255,0.88); }
+  .user-org  { font-size:10px; color:rgba(255,255,255,0.38); }
 
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 8px;
-    cursor: pointer; transition: background 0.15s;
-    font-size: 12px; color: rgba(255,255,255,0.52);
-    border: none; background: none; width: 100%;
-    text-align: left; margin-bottom: 1px;
-    font-family: 'Inter', sans-serif;
-  }
-  .nav-item:hover  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.82); }
-  .nav-item.active { background: rgba(240,90,40,0.18); color: #ff8a65; }
-  .nav-icon  { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
-  .nav-badge { margin-left: auto; background: var(--orange); color: white; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  /* ── MAIN ── */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; background:var(--off-white); }
 
-  .sidebar-footer { padding: 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .header { padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); background:white; flex-shrink:0; }
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .header-divider { width:1px; height:20px; background:var(--border); }
+  .page-title { font-size:14px; font-weight:700; color:var(--navy); }
+  .page-sub   { font-size:11px; color:var(--text3); margin-top:1px; }
+  .header-pills { display:flex; gap:8px; }
+  .pill { display:flex; align-items:center; gap:5px; padding:5px 11px; border-radius:20px; font-size:11px; font-weight:500; border:1px solid; }
+  .pill-orange { background:var(--orange-bg); border-color:var(--orange-bdr); color:var(--orange); }
+  .pill-green  { background:rgba(16,185,129,0.08); border-color:rgba(16,185,129,0.25); color:#059669; }
+  .pill-dot { width:5px; height:5px; border-radius:50%; }
+  .pill-dot-orange { background:var(--orange); }
+  .pill-dot-green  { background:var(--green); }
 
-  .user-card {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 8px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .user-av { width: 30px; height: 30px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; flex-shrink: 0; }
-  .user-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.88); }
-  .user-org  { font-size: 10px; color: rgba(255,255,255,0.38); }
+  /* ── PAGE VIEWS ── */
+  .page { display:none; flex:1; flex-direction:column; overflow:hidden; }
+  .page.active { display:flex; }
 
-  /* MAIN */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; background: var(--off-white); }
+  /* ── AI CHAT PAGE ── */
+  .chat-area { flex:1; overflow-y:auto; padding:28px; display:flex; flex-direction:column; gap:20px; }
 
-  .header {
-    padding: 0 28px; height: 58px;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    background: white; flex-shrink: 0;
-  }
-  .header-left { display: flex; align-items: center; gap: 14px; }
-  .header-divider { width: 1px; height: 20px; background: var(--border); }
-  .page-title { font-size: 14px; font-weight: 700; color: var(--navy); }
-  .page-sub   { font-size: 11px; color: var(--text3); margin-top: 1px; }
-  .header-pills { display: flex; gap: 8px; }
+  .welcome { text-align:center; padding:36px 20px; }
+  .welcome-icon { width:60px; height:60px; background:var(--orange-bg); border:1px solid var(--orange-bdr); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 18px; }
+  .welcome h2 { font-size:20px; font-weight:700; margin-bottom:8px; color:var(--navy); }
+  .welcome p  { font-size:13px; color:var(--text2); max-width:400px; margin:0 auto 24px; line-height:1.65; }
+  .suggestion-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; max-width:560px; margin:0 auto; }
+  .suggestion-btn { background:white; border:1px solid var(--border); border-radius:10px; padding:13px 15px; text-align:left; cursor:pointer; transition:all 0.15s; color:var(--text); font-family:'Inter',sans-serif; font-size:12px; line-height:1.5; }
+  .suggestion-btn:hover { border-color:var(--orange); color:var(--orange); transform:translateY(-1px); box-shadow:0 4px 12px rgba(240,90,40,0.1); }
+  .suggestion-icon { font-size:16px; margin-bottom:6px; display:block; }
 
-  .pill { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 20px; font-size: 11px; font-weight: 500; border: 1px solid; }
-  .pill-orange { background: var(--orange-bg); border-color: var(--orange-bdr); color: var(--orange); }
-  .pill-green  { background: rgba(16,185,129,0.08); border-color: rgba(16,185,129,0.25); color: #059669; }
-  .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
-  .pill-dot-orange { background: var(--orange); }
-  .pill-dot-green  { background: var(--green); }
-
-  /* Chat */
-  .chat-area {
-    flex: 1; overflow-y: auto; padding: 28px;
-    display: flex; flex-direction: column; gap: 20px;
-  }
-
-  .welcome { text-align: center; padding: 36px 20px; }
-  .welcome-icon { width: 60px; height: 60px; background: var(--orange-bg); border: 1px solid var(--orange-bdr); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 18px; }
-  .welcome h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--navy); }
-  .welcome p  { font-size: 13px; color: var(--text2); max-width: 400px; margin: 0 auto 24px; line-height: 1.65; }
-
-  .suggestion-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; max-width: 560px; margin: 0 auto; }
-
-  .suggestion-btn {
-    background: white; border: 1px solid var(--border); border-radius: 10px;
-    padding: 13px 15px; text-align: left; cursor: pointer;
-    transition: all 0.15s; color: var(--text);
-    font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.5;
-  }
-  .suggestion-btn:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240,90,40,0.1); }
-  .suggestion-icon { font-size: 16px; margin-bottom: 6px; display: block; }
-
-  /* Messages */
-  .msg { display: flex; gap: 12px; max-width: 900px; animation: fadeUp 0.3s ease; }
+  .msg { display:flex; gap:12px; max-width:900px; animation:fadeUp 0.3s ease; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  .msg.user { flex-direction:row-reverse; align-self:flex-end; }
+  .msg-avatar { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+  .av-ai   { background:var(--navy);   color:white; }
+  .av-user { background:var(--orange); color:white; }
+  .msg-content { flex:1; min-width:0; }
+  .msg-bubble  { padding:13px 16px; border-radius:12px; font-size:13px; line-height:1.65; }
+  .bubble-user { background:var(--navy); color:rgba(255,255,255,0.92); border-radius:12px 4px 12px 12px; }
+  .bubble-ai   { background:white; border:1px solid var(--border); color:var(--text); border-radius:4px 12px 12px 12px; box-shadow:0 1px 4px rgba(26,43,74,0.06); }
+  .msg-meta { font-size:10px; color:var(--text3); margin-top:4px; }
+  .msg.user .msg-meta { text-align:right; }
 
-  .msg-avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .av-ai   { background: var(--navy);   color: white; }
-  .av-user { background: var(--orange); color: white; }
+  .security-trace { display: none !important; }
+  .trace-title   { color:#059669; font-weight:700; margin-bottom:6px; }
+  .trace-line    { color:var(--text3); margin-bottom:2px; }
+  .trace-line.sql     { color:var(--navy3); }
+  .trace-line.pass    { color:#059669; }
+  .trace-line.blocked { color:var(--red); }
 
-  .msg-content { flex: 1; min-width: 0; }
-  .msg-bubble  { padding: 13px 16px; border-radius: 12px; font-size: 13px; line-height: 1.65; }
-  .bubble-user { background: var(--navy); color: rgba(255,255,255,0.92); border-radius: 12px 4px 12px 12px; }
-  .bubble-ai   { background: white; border: 1px solid var(--border); color: var(--text); border-radius: 4px 12px 12px 12px; box-shadow: 0 1px 4px rgba(26,43,74,0.06); }
-  .msg-meta    { font-size: 10px; color: var(--text3); margin-top: 4px; }
-  .msg.user .msg-meta { text-align: right; }
+  .result-table { margin-top:12px; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:white; }
+  .result-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--off-white); border-bottom:1px solid var(--border); }
+  .result-title  { font-size:11px; font-weight:700; color:var(--navy); text-transform:uppercase; letter-spacing:0.05em; }
+  .result-count  { font-size:11px; color:var(--text3); }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; padding:9px 16px; font-size:10px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:0.05em; background:#fafbfc; border-bottom:1px solid var(--border); }
+  td { padding:10px 16px; font-size:12px; color:var(--text2); border-bottom:1px solid var(--border2); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#fafbfc; }
+  .status-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:10px; font-weight:600; }
+  .s-stable   { background:rgba(16,185,129,0.1);  color:#059669; }
+  .s-risk     { background:rgba(239,68,68,0.1);   color:#dc2626; }
+  .s-progress { background:rgba(245,158,11,0.1);  color:#d97706; }
+  .s-new      { background:rgba(26,43,74,0.08);   color:var(--navy); }
 
-  /* Security trace */
-  .security-trace { background: rgba(16,185,129,0.04); border: 1px solid rgba(16,185,129,0.18); border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-family: 'Courier New', monospace; font-size: 10px; }
-  .trace-title   { color: #059669; font-weight: 700; margin-bottom: 6px; }
-  .trace-line    { color: var(--text3); margin-bottom: 2px; }
-  .trace-line.sql     { color: var(--navy3); }
-  .trace-line.pass    { color: #059669; }
-  .trace-line.blocked { color: var(--red); }
-
-  /* Tables */
-  .result-table { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: white; }
-  .result-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--off-white); border-bottom: 1px solid var(--border); }
-  .result-title  { font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: 0.05em; }
-  .result-count  { font-size: 11px; color: var(--text3); }
-
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; padding: 9px 16px; font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; background: #fafbfc; border-bottom: 1px solid var(--border); }
-  td { padding: 10px 16px; font-size: 12px; color: var(--text2); border-bottom: 1px solid var(--border2); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #fafbfc; }
-
-  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; }
-  .s-stable   { background: rgba(16,185,129,0.1);  color: #059669; }
-  .s-risk     { background: rgba(239,68,68,0.1);   color: #dc2626; }
-  .s-progress { background: rgba(245,158,11,0.1);  color: #d97706; }
-  .s-new      { background: rgba(26,43,74,0.08);   color: var(--navy); }
-
-  /* Metrics */
-  .metric-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
-  .metric-card { background: var(--off-white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .metric-card.accent { background: var(--orange); border-color: var(--orange); }
-  .metric-label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
-  .metric-value { font-size: 22px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px; }
-  .metric-sub   { font-size: 10px; color: var(--text3); margin-top: 2px; }
-  .metric-up    { color: var(--green) !important; }
-  .metric-down  { color: var(--orange) !important; }
+  .metric-row { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+  .metric-card { background:var(--off-white); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .metric-card.accent { background:var(--orange); border-color:var(--orange); }
+  .metric-label { font-size:10px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:5px; }
+  .metric-value { font-size:22px; font-weight:700; color:var(--navy); letter-spacing:-0.5px; }
+  .metric-sub   { font-size:10px; color:var(--text3); margin-top:2px; }
+  .metric-up    { color:var(--green) !important; }
   .metric-card.accent .metric-label,
   .metric-card.accent .metric-value,
-  .metric-card.accent .metric-sub { color: white !important; }
+  .metric-card.accent .metric-sub { color:white !important; }
 
-  /* Access denied */
-  .access-denied { background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.18); border-radius: 10px; padding: 16px; margin-top: 10px; display: flex; align-items: flex-start; gap: 12px; }
-  .denied-icon  { font-size: 22px; flex-shrink: 0; }
-  .denied-title { font-size: 13px; font-weight: 700; color: #dc2626; margin-bottom: 5px; }
-  .denied-body  { font-size: 12px; color: var(--text2); line-height: 1.6; }
-  .denied-trace { font-family: 'Courier New', monospace; font-size: 10px; color: var(--text3); margin-top: 10px; background: #fef2f2; padding: 8px 10px; border-radius: 6px; }
+  .access-denied { background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.18); border-radius:10px; padding:16px; margin-top:10px; display:flex; align-items:flex-start; gap:12px; }
+  .denied-icon  { font-size:22px; flex-shrink:0; }
+  .denied-title { font-size:13px; font-weight:700; color:#dc2626; margin-bottom:5px; }
+  .denied-body  { font-size:12px; color:var(--text2); line-height:1.6; }
+  .denied-trace { font-family:'Courier New',monospace; font-size:10px; color:var(--text3); margin-top:10px; background:#fef2f2; padding:8px 10px; border-radius:6px; }
 
-  /* Thinking */
-  .thinking { display: flex; align-items: center; gap: 10px; padding: 13px 16px; background: white; border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; font-size: 12px; color: var(--text3); box-shadow: 0 1px 4px rgba(26,43,74,0.06); }
-  .thinking-dots { display: flex; gap: 4px; }
-  .thinking-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange); animation: bounce 1.2s infinite; }
-  .thinking-dot:nth-child(2) { animation-delay: 0.2s; }
-  .thinking-dot:nth-child(3) { animation-delay: 0.4s; }
+  .thinking { display:flex; align-items:center; gap:10px; padding:13px 16px; background:white; border:1px solid var(--border); border-radius:4px 12px 12px 12px; font-size:12px; color:var(--text3); box-shadow:0 1px 4px rgba(26,43,74,0.06); }
+  .thinking-dots { display:flex; gap:4px; }
+  .thinking-dot { width:5px; height:5px; border-radius:50%; background:var(--orange); animation:bounce 1.2s infinite; }
+  .thinking-dot:nth-child(2) { animation-delay:0.2s; }
+  .thinking-dot:nth-child(3) { animation-delay:0.4s; }
   @keyframes bounce { 0%,100%{transform:translateY(0);opacity:0.3} 50%{transform:translateY(-4px);opacity:1} }
 
-  /* Input */
-  .input-area { padding: 16px 28px 20px; border-top: 1px solid var(--border); background: white; flex-shrink: 0; }
-  .input-wrapper { display: flex; align-items: flex-end; gap: 10px; background: var(--off-white); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 12px; transition: border-color 0.2s; }
-  .input-wrapper:focus-within { border-color: var(--orange); }
+  .input-area { padding:16px 28px 20px; border-top:1px solid var(--border); background:white; flex-shrink:0; }
+  .input-wrapper { display:flex; align-items:flex-end; gap:10px; background:var(--off-white); border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; transition:border-color 0.2s; }
+  .input-wrapper:focus-within { border-color:var(--orange); }
+  #queryInput { flex:1; background:none; border:none; outline:none; font-family:'Inter',sans-serif; font-size:13px; color:var(--text); resize:none; min-height:20px; max-height:100px; line-height:1.5; }
+  #queryInput::placeholder { color:var(--text3); }
+  .send-btn { width:36px; height:36px; border-radius:9px; background:var(--orange); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+  .send-btn:hover    { background:var(--orange2); transform:scale(1.04); }
+  .send-btn:disabled { background:var(--border); cursor:not-allowed; transform:none; }
+  .input-hint { display:flex; align-items:center; justify-content:space-between; margin-top:8px; font-size:10px; color:var(--text3); }
+  .hint-pills { display:flex; gap:6px; flex-wrap:wrap; }
+  .hint-pill { padding:4px 9px; border-radius:20px; background:var(--off-white); border:1px solid var(--border); cursor:pointer; transition:all 0.15s; color:var(--text3); font-size:10px; font-weight:500; font-family:'Inter',sans-serif; }
+  .hint-pill:hover { border-color:var(--orange); color:var(--orange); background:var(--orange-bg); }
+  .info-box { margin-top:10px; padding:10px 14px; background:var(--orange-bg); border:1px solid var(--orange-bdr); border-left:3px solid var(--orange); border-radius:0 8px 8px 0; font-size:12px; color:var(--text2); line-height:1.6; }
+  .info-box strong { color:var(--navy); }
 
-  #queryInput { flex: 1; background: none; border: none; outline: none; font-family: 'Inter', sans-serif; font-size: 13px; color: var(--text); resize: none; min-height: 20px; max-height: 100px; line-height: 1.5; }
-  #queryInput::placeholder { color: var(--text3); }
+  /* ── PII FILTER BANNER ── */
+  .pii-banner { margin:0 0 10px; padding:10px 14px; border-radius:8px; display:flex; align-items:flex-start; gap:10px; animation:fadeUp 0.3s ease; }
+  .pii-banner.warning { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); }
+  .pii-banner.blocked { background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); }
+  .pii-banner.clean   { background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.2); }
+  .pii-icon  { font-size:16px; flex-shrink:0; margin-top:1px; }
+  .pii-title { font-size:12px; font-weight:700; margin-bottom:3px; }
+  .pii-banner.warning .pii-title { color:#b45309; }
+  .pii-banner.blocked .pii-title { color:#dc2626; }
+  .pii-banner.clean   .pii-title { color:#059669; }
+  .pii-body  { font-size:11px; color:var(--text2); line-height:1.6; }
+  .pii-entities { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+  .pii-tag { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; }
+  .pii-tag.person { background:#EEEDFE; color:#3C3489; }
+  .pii-tag.ssn    { background:#FCEBEB; color:#7f1d1d; }
+  .pii-tag.date   { background:#FFF0EB; color:#92400e; }
+  .pii-tag.phone  { background:#FAEEDA; color:#78350f; }
+  .pii-tag.medicaid { background:#E1F5EE; color:#065f46; }
+  .pii-tag.email  { background:#E6F1FB; color:#1e40af; }
+  .pii-redacted { display:inline; font-family:'Courier New',monospace; font-size:10px; background:rgba(26,43,74,0.07); padding:1px 5px; border-radius:3px; }
 
-  .send-btn { width: 36px; height: 36px; border-radius: 9px; background: var(--orange); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
-  .send-btn:hover    { background: var(--orange2); transform: scale(1.04); }
-  .send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+  /* ── ANALYSIS / INTELLIGENCE CARDS ── */
+  .analysis-card { margin-top:12px; background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .analysis-header { padding:12px 16px; background:var(--navy); display:flex; align-items:center; justify-content:space-between; }
+  .analysis-header-title { font-size:12px; font-weight:700; color:white; }
+  .analysis-header-sub   { font-size:10px; color:rgba(255,255,255,0.5); }
+  .analysis-body  { padding:14px 16px; }
 
-  .input-hint { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--text3); }
-  .hint-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-  .hint-pill { padding: 4px 9px; border-radius: 20px; background: var(--off-white); border: 1px solid var(--border); cursor: pointer; transition: all 0.15s; color: var(--text3); font-size: 10px; font-weight: 500; font-family: 'Inter', sans-serif; }
-  .hint-pill:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
+  .insight-list { display:flex; flex-direction:column; gap:8px; }
+  .insight-row  { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:8px; background:var(--off-white); border:1px solid var(--border2); }
+  .insight-icon { font-size:16px; flex-shrink:0; }
+  .insight-content { flex:1; }
+  .insight-title { font-size:12px; font-weight:600; color:var(--navy); margin-bottom:2px; }
+  .insight-body  { font-size:11px; color:var(--text2); line-height:1.6; }
+  .insight-action { display:inline-block; margin-top:4px; font-size:10px; font-weight:600; color:var(--orange); cursor:pointer; }
+  .insight-row.critical { background:rgba(239,68,68,0.04); border-color:rgba(239,68,68,0.15); }
+  .insight-row.positive { background:rgba(16,185,129,0.04); border-color:rgba(16,185,129,0.15); }
+  .insight-row.warning  { background:rgba(245,158,11,0.04); border-color:rgba(245,158,11,0.15); }
 
-  .info-box { margin-top: 10px; padding: 10px 14px; background: var(--orange-bg); border: 1px solid var(--orange-bdr); border-left: 3px solid var(--orange); border-radius: 0 8px 8px 0; font-size: 12px; color: var(--text2); line-height: 1.6; }
-  .info-box strong { color: var(--navy); }
+  /* Mini bar chart */
+  .mini-chart { margin-top:12px; }
+  .mini-chart-title { font-size:10px; font-weight:600; color:var(--text3); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .bar-label { font-size:11px; color:var(--text2); width:90px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bar-track { flex:1; height:8px; background:var(--off-white); border-radius:4px; overflow:hidden; border:1px solid var(--border2); }
+  .bar-fill  { height:100%; border-radius:4px; transition:width 0.6s ease; }
+  .bar-val   { font-size:11px; font-weight:600; color:var(--navy); width:34px; text-align:right; flex-shrink:0; }
 
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  /* Trend line sparkline */
+  .sparkline-row { display:flex; gap:12px; margin-top:12px; }
+  .spark-card { flex:1; background:var(--off-white); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .spark-label { font-size:10px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .spark-val   { font-size:18px; font-weight:700; color:var(--navy); margin:2px 0; }
+  .spark-trend { font-size:10px; }
+  .trend-up    { color:var(--green); }
+  .trend-down  { color:var(--red); }
+
+  /* Prediction badge */
+  .pred-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; margin-top:6px; }
+  .pred-high { background:rgba(239,68,68,0.1); color:#dc2626; border:1px solid rgba(239,68,68,0.2); }
+  .pred-med  { background:rgba(245,158,11,0.1); color:#b45309; border:1px solid rgba(245,158,11,0.2); }
+  .pred-low  { background:rgba(16,185,129,0.1); color:#059669; border:1px solid rgba(16,185,129,0.2); }
+
+  /* ── CHART CONTAINERS ── */
+  .chart-wrap { background:white; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-top:12px; }
+  .chart-header { padding:12px 16px 0; display:flex; align-items:center; justify-content:space-between; }
+  .chart-title { font-size:12px; font-weight:700; color:var(--navy); }
+  .chart-sub   { font-size:10px; color:var(--text3); }
+  .chart-type-pills { display:flex; gap:4px; }
+  .ctp { padding:3px 9px; border-radius:10px; font-size:10px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--off-white); color:var(--text3); font-family:'Inter',sans-serif; transition:all 0.15s; }
+  .ctp.active { background:var(--navy); color:white; border-color:var(--navy); }
+  .chart-body  { padding:14px 16px 16px; position:relative; }
+  .chart-canvas-wrap { position:relative; height:220px; }
+  .chart-insight { margin-top:10px; padding:8px 12px; background:var(--orange-bg); border:1px solid var(--orange-bdr); border-left:3px solid var(--orange); border-radius:0 6px 6px 0; font-size:11px; color:var(--text2); line-height:1.6; }
+  .chart-insight strong { color:var(--navy); }
+  .chart-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; }
+  .legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); }
+  .legend-dot  { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+  /* ── ONBOARDING PAGE ── */
+  .onboarding-wrap { flex:1; overflow-y:auto; padding:32px 40px; }
+
+  .ob-header { margin-bottom:28px; }
+  .ob-header h2 { font-size:22px; font-weight:700; color:var(--navy); margin-bottom:6px; }
+  .ob-header p  { font-size:13px; color:var(--text2); line-height:1.65; max-width:560px; }
+
+  /* Progress stepper */
+  .stepper { display:flex; align-items:center; gap:0; margin-bottom:32px; }
+  .step-item { display:flex; align-items:center; flex:1; }
+  .step-circle {
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0;
+    transition:all 0.3s;
+  }
+  .step-circle.done    { background:var(--green);  color:white; }
+  .step-circle.active  { background:var(--orange); color:white; box-shadow:0 0 0 4px var(--orange-bg); }
+  .step-circle.pending { background:white; color:var(--text3); border:2px solid var(--border); }
+  .step-label { font-size:11px; font-weight:500; margin-left:8px; white-space:nowrap; }
+  .step-label.done    { color:var(--green); }
+  .step-label.active  { color:var(--orange); }
+  .step-label.pending { color:var(--text3); }
+  .step-line { flex:1; height:2px; background:var(--border); margin:0 8px; transition:background 0.3s; }
+  .step-line.done { background:var(--green); }
+
+  /* Step panels */
+  .step-panel { display:none; animation:fadeUp 0.3s ease; }
+  .step-panel.active { display:block; }
+
+  .ob-card { background:white; border:1px solid var(--border); border-radius:14px; padding:28px 32px; margin-bottom:16px; }
+
+  .ob-card h3 { font-size:16px; font-weight:700; color:var(--navy); margin-bottom:6px; }
+  .ob-card .ob-desc { font-size:13px; color:var(--text2); line-height:1.6; margin-bottom:22px; }
+
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full { grid-column:1/-1; }
+  .form-label { font-size:11px; font-weight:600; color:var(--navy); text-transform:uppercase; letter-spacing:0.05em; }
+  .form-input, .form-select, .form-textarea {
+    padding:10px 12px; border:1.5px solid var(--border);
+    border-radius:8px; font-family:'Inter',sans-serif;
+    font-size:13px; color:var(--text);
+    background:var(--off-white); outline:none;
+    transition:border-color 0.2s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--orange); background:white; }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .form-select { cursor:pointer; }
+
+  .ob-actions { display:flex; align-items:center; justify-content:space-between; margin-top:24px; padding-top:20px; border-top:1px solid var(--border); }
+  .ob-actions-right { display:flex; gap:10px; }
+
+  .btn { padding:10px 20px; border-radius:8px; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all 0.15s; border:none; }
+  .btn-primary { background:var(--orange); color:white; }
+  .btn-primary:hover { background:var(--orange2); transform:translateY(-1px); }
+  .btn-secondary { background:white; color:var(--text2); border:1.5px solid var(--border); }
+  .btn-secondary:hover { border-color:var(--navy); color:var(--navy); }
+  .btn-success { background:var(--green); color:white; }
+  .btn-success:hover { background:#059669; transform:translateY(-1px); }
+
+  /* Role cards */
+  .role-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:8px; }
+  .role-card { border:2px solid var(--border); border-radius:10px; padding:16px; cursor:pointer; transition:all 0.15s; text-align:center; background:var(--off-white); }
+  .role-card:hover   { border-color:var(--orange); background:var(--orange-bg); }
+  .role-card.selected { border-color:var(--orange); background:var(--orange-bg); }
+  .role-icon  { font-size:24px; margin-bottom:8px; }
+  .role-title { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:4px; }
+  .role-desc  { font-size:11px; color:var(--text3); line-height:1.5; }
+
+  /* Permission toggles */
+  .perm-list { display:flex; flex-direction:column; gap:10px; }
+  .perm-row  { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:var(--off-white); border:1px solid var(--border); border-radius:10px; }
+  .perm-info { display:flex; align-items:center; gap:12px; }
+  .perm-icon { font-size:18px; width:32px; text-align:center; }
+  .perm-title { font-size:13px; font-weight:600; color:var(--navy); }
+  .perm-sub   { font-size:11px; color:var(--text3); }
+
+  .toggle { width:40px; height:22px; border-radius:11px; background:var(--border); cursor:pointer; transition:background 0.2s; position:relative; flex-shrink:0; border:none; }
+  .toggle.on { background:var(--orange); }
+  .toggle::after { content:''; position:absolute; width:16px; height:16px; border-radius:50%; background:white; top:3px; left:3px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .toggle.on::after { transform:translateX(18px); }
+
+  /* Compliance checklist */
+  .check-list { display:flex; flex-direction:column; gap:8px; }
+  .check-row  { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--off-white); border:1px solid var(--border); border-radius:10px; }
+  .check-box  { width:20px; height:20px; border-radius:5px; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:11px; }
+  .check-box.checked   { background:var(--green); color:white; }
+  .check-box.unchecked { background:white; border:2px solid var(--border); }
+  .check-title { font-size:13px; font-weight:500; color:var(--navy); }
+  .check-sub   { font-size:11px; color:var(--text3); }
+
+  /* Success screen */
+  .success-screen { text-align:center; padding:40px 20px; }
+  .success-icon { width:72px; height:72px; background:rgba(16,185,129,0.1); border:2px solid rgba(16,185,129,0.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 20px; animation:popIn 0.5s ease; }
+  @keyframes popIn { 0%{transform:scale(0.6);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+  .success-screen h2 { font-size:22px; font-weight:700; color:var(--navy); margin-bottom:10px; }
+  .success-screen p  { font-size:13px; color:var(--text2); max-width:420px; margin:0 auto 24px; line-height:1.65; }
+
+  .summary-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:500px; margin:0 auto 28px; }
+  .summary-card { background:white; border:1px solid var(--border); border-radius:10px; padding:14px; text-align:center; }
+  .summary-val  { font-size:18px; font-weight:700; color:var(--orange); }
+  .summary-lbl  { font-size:11px; color:var(--text3); margin-top:2px; }
+
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- SIDEBAR -->
+  <!-- ── SIDEBAR ── -->
   <div class="sidebar">
     <div class="sidebar-logo">
       <div class="logo-wordmark">IMP<span class="o-letter">O</span>WR</div>
@@ -306,22 +386,9 @@
       <button class="org-btn active">
         <div class="org-avatar av-orange">RH</div>
         <div class="org-info">
-          <div class="org-name">Rochester Housing First</div>
+          <div class="org-name">Rochester Housing</div>
           <div class="org-role">Manager · Org ID: 42</div>
         </div>
-      </button>
-      <div class="org-sep"></div>
-      <div class="org-label" style="padding-top:6px">Other Organizations</div>
-      <button class="org-btn blocked-org" onclick="showBlockedAlert()">
-        <div class="org-avatar av-gray">BH</div>
-        <div class="org-info">
-          <div class="org-name">Buffalo Health Services</div>
-          <div class="org-role">Org ID: 17 · No Access</div>
-        </div>
-        <svg class="org-lock" viewBox="0 0 16 16" fill="none">
-          <rect x="3" y="7" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.2"/>
-          <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
       </button>
     </div>
 
@@ -331,8 +398,18 @@
     </div>
 
     <div class="sidebar-nav">
-      <div class="nav-section-label">Queries</div>
-      <button class="nav-item active"><span class="nav-icon">💬</span> AI Assistant <span class="nav-badge">Live</span></button>
+      <div class="nav-section-label">Workspace</div>
+      <button class="nav-item active" id="nav-ai" onclick="switchPage('ai')">
+        <span class="nav-icon">💬</span> AI Assistant
+        <span class="nav-badge">+ Intelligence</span>
+      </button>
+      <button class="nav-item" id="nav-onboard" onclick="switchPage('onboard')">
+        <span class="nav-icon">🚀</span> Onboarding
+      </button>
+      <button class="nav-item" id="nav-usermgmt" onclick="switchPage('usermgmt')">
+        <span class="nav-icon">🛡️</span> User Management
+        <span class="nav-badge-new">Admin</span>
+      </button>
       <button class="nav-item"><span class="nav-icon">📊</span> Saved Reports</button>
       <button class="nav-item"><span class="nav-icon">📋</span> Grant Reports</button>
       <div class="nav-section-label" style="margin-top:8px">Data</div>
@@ -346,83 +423,560 @@
 
     <div class="sidebar-footer">
       <div class="user-card">
-        <div class="user-av">SM</div>
+        <div class="user-av">SS</div>
         <div>
-          <div class="user-name">Sarah Martinez</div>
+          <div class="user-name">Shruti Singh</div>
           <div class="user-org">Program Manager · Org 42</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MAIN -->
+  <!-- ── MAIN ── -->
   <div class="main">
+
+    <!-- Header -->
     <div class="header">
       <div class="header-left">
         <div>
-          <div class="page-title">AI Data Assistant</div>
-          <div class="page-sub">Rochester Housing First · Org ID 42</div>
+          <div class="page-title" id="headerTitle">AI Data Assistant</div>
+          <div class="page-sub"  id="headerSub">Rochester Housing · Org ID 42</div>
         </div>
         <div class="header-divider"></div>
-        <div style="font-size:12px;color:var(--text3)">Powered by Azure OpenAI GPT-4.1</div>
+        <div style="font-size:12px;color:var(--text3)" id="headerMeta">Powered by Azure OpenAI GPT-4.1</div>
       </div>
       <div class="header-pills">
-        <div class="pill pill-green"><div class="pill-dot pill-dot-green"></div>RLS Active</div>
-        <div class="pill pill-orange"><div class="pill-dot pill-dot-orange"></div>HIPAA Compliant</div>
       </div>
     </div>
 
-    <div class="chat-area" id="chatArea">
-      <div class="welcome" id="welcomeScreen">
-        <div class="welcome-icon">🤖</div>
-        <h2>Ask anything about your clients</h2>
-        <p>No SQL needed. Type in plain English and get instant answers — securely scoped to Rochester Housing First only.</p>
-        <div class="suggestion-grid">
-          <button class="suggestion-btn" onclick="ask('How many clients achieved stable housing in Q1 2025?')">
-            <span class="suggestion-icon">🏠</span>How many clients achieved stable housing in Q1 2025?
+    <!-- ── PAGE: AI CHAT ── -->
+    <div class="page active" id="page-ai">
+      <div class="chat-area" id="chatArea">
+        <div class="welcome" id="welcomeScreen">
+          <div class="welcome-icon">🤖</div>
+          <h2>Ask anything about your clients</h2>
+          <p>No SQL needed. Type in plain English and get instant answers — securely scoped to Rochester Housing only.</p>
+          <div class="suggestion-grid">
+            <button class="suggestion-btn" onclick="ask('Show me a chart of housing outcomes by month')">
+              <span class="suggestion-icon">📈</span>Chart housing outcomes by month
+            </button>
+            <button class="suggestion-btn" onclick="ask('Show me a breakdown chart of client status distribution')">
+              <span class="suggestion-icon">🥧</span>Client status breakdown chart
+            </button>
+            <button class="suggestion-btn" onclick="ask('Chart caseworker performance comparison')">
+              <span class="suggestion-icon">📊</span>Caseworker performance chart
+            </button>
+            <button class="suggestion-btn" onclick="ask('Show me appointment attendance trends as a chart')">
+              <span class="suggestion-icon">📅</span>Appointment attendance trend chart
+            </button>
+            <button class="suggestion-btn" onclick="ask('Analyse trends and give me intelligence on our at-risk clients')">
+              <span class="suggestion-icon">🧠</span>Data intelligence analysis
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea id="queryInput" placeholder="Ask about your clients, request any chart or analysis..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendQuery()">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/></svg>
           </button>
-          <button class="suggestion-btn" onclick="ask('Show me clients who missed 3 or more appointments this month')">
-            <span class="suggestion-icon">⚠️</span>Show me clients who missed 3+ appointments this month
-          </button>
-          <button class="suggestion-btn" onclick="ask('Generate a summary report for our SAMHSA grant renewal')">
-            <span class="suggestion-icon">📄</span>Generate our SAMHSA grant summary report
-          </button>
-          <button class="suggestion-btn" onclick="ask('Show me all clients from Buffalo Health Services org')">
-            <span class="suggestion-icon">🔒</span>Demo: try accessing another org's data
-          </button>
+        </div>
+        <div class="input-hint">
+          <div class="hint-pills">
+            <button class="hint-pill" onclick="ask('Show me a chart of housing outcomes by month')">📈 Line chart</button>
+            <button class="hint-pill" onclick="ask('Show me a breakdown chart of client status distribution')">🥧 Pie chart</button>
+            <button class="hint-pill" onclick="ask('Chart caseworker performance comparison')">📊 Bar chart</button>
+            <button class="hint-pill" onclick="ask('Analyse trends and give me intelligence on our at-risk clients')">🧠 Intelligence</button>
+            <button class="hint-pill" onclick="ask('Show me all clients from Mary Cariola org')">🔒 Cross-org</button>
+          </div>
+          <span>Org 42 scoped · Azure RLS enforced</span>
         </div>
       </div>
     </div>
 
-    <div class="input-area">
-      <div class="input-wrapper">
-        <textarea id="queryInput" placeholder="Ask about your clients, outcomes, or generate a grant report..." rows="1"
-          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-        <button class="send-btn" id="sendBtn" onclick="sendQuery()">
-          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l2.5 6L2 14l12-6z" fill="white"/></svg>
-        </button>
-      </div>
-      <div class="input-hint">
-        <div class="hint-pills">
-          <button class="hint-pill" onclick="ask('How many clients do we have total?')">Overview</button>
-          <button class="hint-pill" onclick="ask('Show me at-risk clients this week')">At-risk</button>
-          <button class="hint-pill" onclick="ask('What is our housing placement rate?')">Placement rate</button>
-          <button class="hint-pill" onclick="ask('Generate a summary report for our SAMHSA grant renewal')">Grant report</button>
-          <button class="hint-pill" onclick="ask('Show me all clients from Buffalo Health Services org')">🔒 Cross-org demo</button>
+    <!-- ── PAGE: ONBOARDING (New User Welcome) ── -->
+    <div class="page" id="page-onboard">
+      <div class="onboarding-wrap">
+        <div class="ob-header">
+          <h2>👋 Welcome to IMPOWR</h2>
+          <p>You're all set up. Here's everything you need to get started — your caseload, your first steps, and how to use the AI assistant.</p>
         </div>
-        <span>Org 42 scoped · Azure RLS enforced</span>
+
+        <!-- Who you are card -->
+        <div class="ob-card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:white;flex-shrink:0">SS</div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:700;color:var(--navy)">Shruti Singh</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px">Program Manager · Rochester Housing · Org ID 42</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:10px;font-weight:700;color:var(--green);background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,0.25)">✓ Account Active</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px">Azure AD · MFA enrolled · RLS enforced</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-col quick stats -->
+        <div class="metric-row" style="margin-bottom:14px">
+          <div class="metric-card accent">
+            <div class="metric-label">Your Org</div>
+            <div class="metric-value" style="font-size:16px">Rochester Housing</div>
+            <div class="metric-sub">Org ID 42</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Total Clients</div>
+            <div class="metric-value">183</div>
+            <div class="metric-sub">active cases</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">At-Risk Today</div>
+            <div class="metric-value" style="color:var(--red)">24</div>
+            <div class="metric-sub" style="color:var(--red)">need follow-up</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Next Deadline</div>
+            <div class="metric-value" style="font-size:16px">SAMHSA</div>
+            <div class="metric-sub">Due in 18 days</div>
+          </div>
+        </div>
+
+        <!-- Caseload assignment -->
+        <div class="ob-card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="margin:0">📋 Your Assigned Caseload</h3>
+            <span style="font-size:11px;color:var(--text3)">Pre-assigned by your admin · DOB masked per HIPAA</span>
+          </div>
+          <div class="result-table">
+            <div class="result-header">
+              <span class="result-title">Clients assigned to you</span>
+              <span class="result-count">3 clients · Org 42 only</span>
+            </div>
+            <table>
+              <thead><tr><th>Client ID</th><th>Name</th><th>DOB</th><th>Status</th><th>Last Contact</th><th>Risk</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td style="color:var(--navy);font-weight:500">C-1087</td><td>Maria L.</td>
+                  <td style="font-family:'Courier New',monospace;font-size:11px;color:var(--text3)">**/**/1985</td>
+                  <td><span class="status-badge s-risk">● At Risk</span></td>
+                  <td>2025-04-01</td>
+                  <td><span style="color:var(--red);font-size:11px;font-weight:600">⚠ High · 3 missed appts</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--navy);font-weight:500">C-1134</td><td>Robert A.</td>
+                  <td style="font-family:'Courier New',monospace;font-size:11px;color:var(--text3)">**/**/1979</td>
+                  <td><span class="status-badge s-risk">● At Risk</span></td>
+                  <td>2025-03-28</td>
+                  <td><span style="color:var(--red);font-size:11px;font-weight:600">⚠ High · 4 missed appts</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--navy);font-weight:500">C-1192</td><td>Lisa G.</td>
+                  <td style="font-family:'Courier New',monospace;font-size:11px;color:var(--text3)">**/**/1993</td>
+                  <td><span class="status-badge s-new">● New Intake</span></td>
+                  <td>2025-04-13</td>
+                  <td><span style="color:var(--text3);font-size:11px">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="info-box" style="margin-top:10px">
+            <strong>Recommended first action:</strong> Contact Maria L. (C-1087) — last contact was 15 days ago and they have 3 missed appointments. Use the AI assistant to pull their full case history.
+          </div>
+        </div>
+
+        <!-- AI Orientation — 3 example queries -->
+        <div class="ob-card" style="margin-bottom:14px">
+          <h3 style="margin-bottom:6px">🤖 Try the AI Assistant — 3 queries to start with</h3>
+          <p class="ob-desc" style="margin-bottom:14px">The AI understands plain English. No SQL needed. Click any query below to run it live right now.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'" onclick="goToAI('Show me my at-risk clients this week')">
+              <div style="font-size:18px;margin-bottom:8px">⚠️</div>
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">See your at-risk clients</div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Who needs your attention most urgently right now</div>
+              <div style="font-size:10px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:4px 10px;border-radius:8px;border:1px solid var(--orange-bdr);display:inline-block">→ "Show me my at-risk clients"</div>
+            </div>
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'" onclick="goToAI('How do I add a new client?')">
+              <div style="font-size:18px;margin-bottom:8px">➕</div>
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">How to add a new client</div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Step-by-step guide to adding a client intake</div>
+              <div style="font-size:10px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:4px 10px;border-radius:8px;border:1px solid var(--orange-bdr);display:inline-block">→ "How do I add a new client?"</div>
+            </div>
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'" onclick="goToAI('Generate a summary report for our SAMHSA grant renewal')">
+              <div style="font-size:18px;margin-bottom:8px">📄</div>
+              <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:4px">Generate a grant report</div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Auto-populate your SAMHSA report in seconds</div>
+              <div style="font-size:10px;font-weight:600;color:var(--orange);background:var(--orange-bg);padding:4px 10px;border-radius:8px;border:1px solid var(--orange-bdr);display:inline-block">→ "Generate SAMHSA report"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team -->
+        <div class="ob-card">
+          <h3 style="margin-bottom:12px">👥 Your Team — Rochester Housing</h3>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center">
+              <div style="width:34px;height:34px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">KJ</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--navy)">K. Johnson</div><div style="font-size:10px;color:var(--text3)">Caseworker</div></div>
+            </div>
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center">
+              <div style="width:34px;height:34px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">RT</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--navy)">R. Thompson</div><div style="font-size:10px;color:var(--text3)">Caseworker</div></div>
+            </div>
+            <div style="background:var(--off-white);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:10px;align-items:center">
+              <div style="width:34px;height:34px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0">MD</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--navy)">M. Davis</div><div style="font-size:10px;color:var(--text3)">Caseworker</div></div>
+            </div>
+          </div>
+          <div style="margin-top:14px;text-align:center">
+            <button class="btn btn-primary" onclick="goToAI('Show me my at-risk clients this week')">Open AI Assistant →</button>
+          </div>
+        </div>
+
       </div>
     </div>
+
+    <!-- ── PAGE: USER MANAGEMENT (Admin) ── -->
+    <div class="page" id="page-usermgmt">
+      <div class="onboarding-wrap">
+
+        <div class="ob-header">
+          <h2>🛡️ User Management</h2>
+          <p>Create and configure new user accounts in 4 steps — organization details, role assignment, data permissions, and compliance sign-off. All access is scoped to Org 42 and enforced by Azure RLS.</p>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper" id="stepper">
+          <div class="step-item">
+            <div class="step-circle active" id="sc1">1</div>
+            <span class="step-label active" id="sl1">Organization</span>
+          </div>
+          <div class="step-line" id="line1"></div>
+          <div class="step-item">
+            <div class="step-circle pending" id="sc2">2</div>
+            <span class="step-label pending" id="sl2">Role & Access</span>
+          </div>
+          <div class="step-line" id="line2"></div>
+          <div class="step-item">
+            <div class="step-circle pending" id="sc3">3</div>
+            <span class="step-label pending" id="sl3">Permissions</span>
+          </div>
+          <div class="step-line" id="line3"></div>
+          <div class="step-item">
+            <div class="step-circle pending" id="sc4">4</div>
+            <span class="step-label pending" id="sl4">Compliance</span>
+          </div>
+        </div>
+
+        <!-- ── STEP 1: Org Details ── -->
+        <div class="step-panel active" id="panel1">
+          <div class="ob-card">
+            <h3>👤 User & Organization Details</h3>
+            <p class="ob-desc">Enter the new user's basic information. Their data access will be automatically scoped to the organization they are assigned to.</p>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input class="form-input" type="text" placeholder="e.g. James" id="f-fname">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input class="form-input" type="text" placeholder="e.g. Walker" id="f-lname">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Work Email</label>
+                <input class="form-input" type="email" placeholder="james@autismup.org" id="f-email">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone (optional)</label>
+                <input class="form-input" type="tel" placeholder="+1 (585) 000-0000">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Assign to Organization</label>
+                <select class="form-select" id="f-org">
+                  <option value="42">Rochester Housing (Org 42)</option>
+                  <option value="43">Mary Cariola (Org 43)</option>
+                  <option value="44">Catholic Charities (Org 44)</option>
+                  <option value="45">Ibero American Action League (Org 45)</option>
+                  <option value="46">Pathways Community HUB (Org 46)</option>
+                  <option value="new">+ Add New Organization</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Department</label>
+                <select class="form-select">
+                  <option>Case Management</option>
+                  <option>Program Management</option>
+                  <option>Administration</option>
+                  <option>Data & Reporting</option>
+                  <option>Executive Leadership</option>
+                </select>
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Notes (optional)</label>
+                <textarea class="form-textarea" placeholder="Any additional context about this user's role or access needs..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="ob-actions">
+            <span style="font-size:12px;color:var(--text3)">Step 1 of 4 · Admin view · Org 42</span>
+            <div class="ob-actions-right">
+              <button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STEP 2: Role ── -->
+        <div class="step-panel" id="panel2">
+          <div class="ob-card">
+            <h3>🎭 Assign Role & Access Level</h3>
+            <p class="ob-desc">Select the user's role. Each role has a predefined access scope enforced by Azure Row-Level Security — users can only see data relevant to their role.</p>
+            <div class="role-grid">
+              <div class="role-card selected" id="role-caseworker" onclick="selectRole('caseworker')">
+                <div class="role-icon">👤</div>
+                <div class="role-title">Caseworker</div>
+                <div class="role-desc">Access to their own assigned clients only. Can enter notes, log appointments, update housing status.</div>
+              </div>
+              <div class="role-card" id="role-manager" onclick="selectRole('manager')">
+                <div class="role-icon">📊</div>
+                <div class="role-title">Program Manager</div>
+                <div class="role-desc">Access to all clients in the org. Can run reports, view outcomes, manage caseworker assignments.</div>
+              </div>
+              <div class="role-card" id="role-admin" onclick="selectRole('admin')">
+                <div class="role-icon">🛡️</div>
+                <div class="role-title">Org Admin</div>
+                <div class="role-desc">Full org access. Can manage users, view audit logs, configure compliance settings and grant reports.</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:12px 16px;background:var(--off-white);border:1px solid var(--border);border-radius:10px;font-size:12px;color:var(--text2)">
+              <strong style="color:var(--navy)">🔐 RLS Policy:</strong> Role assignment writes to Azure AD and automatically updates <code style="background:rgba(26,43,74,0.06);padding:1px 5px;border-radius:4px;font-size:11px">SESSION_CONTEXT(OrgID)</code> and <code style="background:rgba(26,43,74,0.06);padding:1px 5px;border-radius:4px;font-size:11px">SESSION_CONTEXT(Role)</code> on every database connection. The <code style="background:rgba(26,43,74,0.06);padding:1px 5px;border-radius:4px;font-size:11px">fn_OrgFilter</code> predicate enforces this at the engine level — no application-level bypass is possible.
+            </div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+            <div class="ob-actions-right">
+              <button class="btn btn-primary" onclick="goStep(3)">Continue →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STEP 3: Permissions ── -->
+        <div class="step-panel" id="panel3">
+          <div class="ob-card">
+            <h3>🔑 Data Access Permissions</h3>
+            <p class="ob-desc">Fine-tune which IMPOWR modules this user can access. All permissions are scoped to Org 42 only — cross-organization access is always blocked at the database layer.</p>
+            <div class="perm-list" id="permList">
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">👥</div><div><div class="perm-title">Client Records</div><div class="perm-sub">View and edit client intake data, case notes, history</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">📅</div><div><div class="perm-title">Appointment Management</div><div class="perm-sub">Schedule, log, and track client appointments</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">🏠</div><div><div class="perm-title">Housing Outcomes</div><div class="perm-sub">Record placement outcomes and retention data</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">💬</div><div><div class="perm-title">AI Data Assistant</div><div class="perm-sub">Query IMPOWR data using natural language</div></div></div>
+                <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">📋</div><div><div class="perm-title">Grant Report Generation</div><div class="perm-sub">Auto-generate SAMHSA, HUD, and funder reports</div></div></div>
+                <button class="toggle" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">🔍</div><div><div class="perm-title">Audit Logs</div><div class="perm-sub">View all data access and query logs for Org 42</div></div></div>
+                <button class="toggle" onclick="this.classList.toggle('on')"></button>
+              </div>
+              <div class="perm-row">
+                <div class="perm-info"><div class="perm-icon">👥</div><div><div class="perm-title">User Management</div><div class="perm-sub">Add, edit, and remove users within Org 42</div></div></div>
+                <button class="toggle" onclick="this.classList.toggle('on')"></button>
+              </div>
+            </div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+            <div class="ob-actions-right">
+              <button class="btn btn-primary" onclick="goStep(4)">Continue →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STEP 4: Compliance ── -->
+        <div class="step-panel" id="panel4">
+          <div class="ob-card">
+            <h3>✅ Compliance & HIPAA Sign-off</h3>
+            <p class="ob-desc">Before activating this account, confirm the user has completed required HIPAA and organizational compliance steps. This is logged to Azure Monitor as part of your audit trail.</p>
+            <div class="check-list">
+              <div class="check-row" onclick="toggleCheck(this)">
+                <div class="check-box checked">✓</div>
+                <div><div class="check-title">HIPAA Privacy & Security Training</div><div class="check-sub">User has completed annual HIPAA training (certificate on file)</div></div>
+              </div>
+              <div class="check-row" onclick="toggleCheck(this)">
+                <div class="check-box checked">✓</div>
+                <div><div class="check-title">Data Use Agreement (DUA) Signed</div><div class="check-sub">User has signed the organization's data use agreement</div></div>
+              </div>
+              <div class="check-row" onclick="toggleCheck(this)">
+                <div class="check-box checked">✓</div>
+                <div><div class="check-title">Background Check Cleared</div><div class="check-sub">Background check completed per org policy</div></div>
+              </div>
+              <div class="check-row" onclick="toggleCheck(this)">
+                <div class="check-box unchecked"></div>
+                <div><div class="check-title">Multi-Factor Authentication (MFA) Enrolled</div><div class="check-sub">User has enrolled in Azure AD MFA — required for all IMPOWR accounts</div></div>
+              </div>
+              <div class="check-row" onclick="toggleCheck(this)">
+                <div class="check-box unchecked"></div>
+                <div><div class="check-title">Acceptable Use Policy Acknowledged</div><div class="check-sub">User has read and agreed to IMPOWR's acceptable use policy</div></div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:12px 16px;background:var(--orange-bg);border:1px solid var(--orange-bdr);border-left:3px solid var(--orange);border-radius:0 8px 8px 0;font-size:12px;color:var(--text2)">
+              <strong style="color:var(--navy)">⚠ Note:</strong> Accounts cannot be activated until all compliance items are checked. This sign-off is recorded in the Azure Monitor audit log with your name, timestamp, and Org ID for HIPAA accountability.
+            </div>
+          </div>
+          <div class="ob-actions">
+            <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+            <div class="ob-actions-right">
+              <button class="btn btn-success" onclick="completeOnboarding()">🎉 Activate Account</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── SUCCESS ── -->
+        <div class="step-panel" id="panel5">
+          <div class="ob-card">
+            <div class="success-screen">
+              <div class="success-icon">🎉</div>
+              <h2 id="successName">James Walker is ready to go!</h2>
+              <p>Account successfully created and scoped to <strong>Rochester Housing (Org 42)</strong>. Azure AD has been updated, RLS policies are active, and an invitation email has been sent.</p>
+              <div class="summary-cards">
+                <div class="summary-card"><div class="summary-val">Org 42</div><div class="summary-lbl">Data scope</div></div>
+                <div class="summary-card"><div class="summary-val" id="successRole">Caseworker</div><div class="summary-lbl">Role assigned</div></div>
+                <div class="summary-card"><div class="summary-val">4/4</div><div class="summary-lbl">Compliance checks</div></div>
+              </div>
+              <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="resetOnboarding()">+ Onboard Another User</button>
+                <button class="btn btn-secondary" onclick="switchPage('ai')">Go to AI Assistant →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- end pages -->
+
   </div>
 </div>
 
 <script>
-const DB = {
-  clients: [
+/* ── PAGE SWITCHING ── */
+function switchPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  if(document.getElementById('nav-'+p)) document.getElementById('nav-'+p).classList.add('active');
+  if(p==='ai'){
+    document.getElementById('headerTitle').textContent='AI Data Assistant';
+    document.getElementById('headerSub').textContent='Rochester Housing · Org ID 42';
+    document.getElementById('headerMeta').textContent='Powered by Azure OpenAI GPT-4.1';
+  } else if(p==='usermgmt'){
+    document.getElementById('headerTitle').textContent='User Management';
+    document.getElementById('headerSub').textContent='Rochester Housing · Org ID 42';
+    document.getElementById('headerMeta').textContent='Admin view · Azure AD · RLS enforced';
+  } else {
+    document.getElementById('headerTitle').textContent='Welcome to IMPOWR';
+    document.getElementById('headerSub').textContent='Rochester Housing · Org ID 42';
+    document.getElementById('headerMeta').textContent='HIPAA-compliant · Azure AD · RLS enforced';
+  }
+}
+
+function goToAI(q){
+  switchPage('ai');
+  document.getElementById('queryInput').value=q;
+  sendQuery();
+}
+
+/* ── ONBOARDING STEPPER ── */
+let currentStep=1, selectedRole='caseworker';
+
+function goStep(n){
+  document.getElementById('panel'+currentStep).classList.remove('active');
+  document.getElementById('panel'+n).classList.add('active');
+
+  for(let i=1;i<=4;i++){
+    const c=document.getElementById('sc'+i);
+    const l=document.getElementById('sl'+i);
+    if(i<n){
+      c.className='step-circle done'; c.textContent='✓';
+      l.className='step-label done';
+      if(i<4) document.getElementById('line'+i).className='step-line done';
+    } else if(i===n){
+      c.className='step-circle active'; c.textContent=i;
+      l.className='step-label active';
+      if(i>1) document.getElementById('line'+(i-1)).className='step-line done';
+    } else {
+      c.className='step-circle pending'; c.textContent=i;
+      l.className='step-label pending';
+      if(i<=4&&i>1) document.getElementById('line'+(i-1)).className=(i-1<n)?'step-line done':'step-line';
+    }
+  }
+  currentStep=n;
+}
+
+function selectRole(r){
+  selectedRole=r;
+  ['caseworker','manager','admin'].forEach(x=>{
+    document.getElementById('role-'+x).classList.toggle('selected',x===r);
+  });
+}
+
+function toggleCheck(row){
+  const box=row.querySelector('.check-box');
+  if(box.classList.contains('checked')){ box.classList.remove('checked'); box.classList.add('unchecked'); box.textContent=''; }
+  else { box.classList.remove('unchecked'); box.classList.add('checked'); box.textContent='✓'; }
+}
+
+function completeOnboarding(){
+  const fn=document.getElementById('f-fname').value||'New';
+  const ln=document.getElementById('f-lname').value||'User';
+  const roleLabel={caseworker:'Caseworker',manager:'Program Manager',admin:'Org Admin'};
+  document.getElementById('successName').textContent=fn+' '+ln+' is ready to go!';
+  document.getElementById('successRole').textContent=roleLabel[selectedRole];
+  document.getElementById('panel4').classList.remove('active');
+  document.getElementById('panel5').classList.add('active');
+  for(let i=1;i<=4;i++){
+    const c=document.getElementById('sc'+i);
+    c.className='step-circle done'; c.textContent='✓';
+    document.getElementById('sl'+i).className='step-label done';
+    if(i<4) document.getElementById('line'+i).className='step-line done';
+  }
+}
+
+function resetOnboarding(){
+  currentStep=1; selectedRole='caseworker';
+  for(let i=1;i<=5;i++){ document.getElementById('panel'+i).classList.remove('active'); }
+  document.getElementById('panel1').classList.add('active');
+  document.getElementById('f-fname').value='';
+  document.getElementById('f-lname').value='';
+  document.getElementById('f-email').value='';
+  ['caseworker','manager','admin'].forEach(x=>{ document.getElementById('role-'+x).classList.toggle('selected',x==='caseworker'); });
+  for(let i=1;i<=4;i++){
+    const c=document.getElementById('sc'+i);
+    if(i===1){ c.className='step-circle active'; c.textContent='1'; document.getElementById('sl'+i).className='step-label active'; }
+    else { c.className='step-circle pending'; c.textContent=i; document.getElementById('sl'+i).className='step-label pending'; }
+    if(i<4) document.getElementById('line'+i).className='step-line';
+  }
+}
+
+/* ── AI CHAT ── */
+const DB={
+  clients:[
     {id:'C-1042',name:'James W.',   status:'Stable',      cw:'R. Thompson',lastContact:'2025-04-10',housing:'Permanent',   missed:0},
     {id:'C-1087',name:'Maria L.',   status:'At Risk',     cw:'K. Johnson', lastContact:'2025-04-01',housing:'Transitional',missed:3},
     {id:'C-1103',name:'David K.',   status:'In Progress', cw:'R. Thompson',lastContact:'2025-04-08',housing:'Shelter',     missed:1},
-    {id:'C-1119',name:'Sarah P.',   status:'Stable',      cw:'M. Davis',   lastContact:'2025-04-11',housing:'Permanent',   missed:0},
+    {id:'C-1119',name:'S*** P.',   status:'Stable',      cw:'M. Davis',   lastContact:'2025-04-11',housing:'Permanent',   missed:0},
     {id:'C-1134',name:'Robert A.',  status:'At Risk',     cw:'K. Johnson', lastContact:'2025-03-28',housing:'Shelter',     missed:4},
     {id:'C-1156',name:'Jennifer M.',status:'In Progress', cw:'M. Davis',   lastContact:'2025-04-09',housing:'Transitional',missed:2},
     {id:'C-1178',name:'Michael T.', status:'Stable',      cw:'R. Thompson',lastContact:'2025-04-12',housing:'Permanent',   missed:0},
@@ -430,35 +984,29 @@ const DB = {
   ]
 };
 
-function sc(s){ return s==='Stable'?'s-stable':s==='At Risk'?'s-risk':s==='In Progress'?'s-progress':'s-new'; }
-
 function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendQuery();} }
 function scrollBot(){ const ca=document.getElementById('chatArea'); ca.scrollTop=ca.scrollHeight; }
 function hideWelcome(){ const w=document.getElementById('welcomeScreen'); if(w) w.style.display='none'; }
-
 function ask(q){ hideWelcome(); document.getElementById('queryInput').value=q; sendQuery(); }
+
+function sc(s){ return s==='Stable'?'s-stable':s==='At Risk'?'s-risk':s==='In Progress'?'s-progress':'s-new'; }
 
 function addMsg(role,content){
   hideWelcome();
   const ca=document.getElementById('chatArea');
-  const d=document.createElement('div');
-  d.className='msg '+role;
+  const d=document.createElement('div'); d.className='msg '+role;
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  if(role==='user'){
-    d.innerHTML=`<div class="msg-avatar av-user">SM</div><div class="msg-content"><div class="msg-bubble bubble-user">${content}</div><div class="msg-meta">${t} · Sarah Martinez</div></div>`;
-  } else {
-    d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${content}</div><div class="msg-meta">IMPOWR AI · ${t} · Scoped to Org 42</div></div>`;
-  }
+  if(role==='user') d.innerHTML=`<div class="msg-avatar av-user">SS</div><div class="msg-content"><div class="msg-bubble bubble-user">${content}</div><div class="msg-meta">${t} · Shruti Singh</div></div>`;
+  else d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${content}</div><div class="msg-meta">IMPOWR AI · ${t} · Scoped to Org 42</div></div>`;
   ca.appendChild(d); scrollBot();
 }
 
 function addThinking(){
   hideWelcome();
   const ca=document.getElementById('chatArea');
-  const d=document.createElement('div');
-  d.className='msg'; d.id='thinking';
-  d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="thinking"><div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div><span>Translating to SQL → Verifying Org 42 → Executing...</span></div></div>`;
+  const d=document.createElement('div'); d.className='msg'; d.id='thinking';
+  d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="thinking"><div class="thinking-dots"><div class="thinking-dot"></div><div class="thinking-dot"></div><div class="thinking-dot"></div></div><span id="thinkLabel">Translating to SQL → Verifying Org 42 → Executing...</span></div></div>`;
   ca.appendChild(d); scrollBot();
 }
 
@@ -467,8 +1015,7 @@ function removeThinking(){ const t=document.getElementById('thinking'); if(t) t.
 function addAI(html){
   removeThinking();
   const ca=document.getElementById('chatArea');
-  const d=document.createElement('div');
-  d.className='msg';
+  const d=document.createElement('div'); d.className='msg';
   const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${html}</div><div class="msg-meta">IMPOWR AI · ${t} · Azure GPT-4.1 · Org 42 scoped</div></div>`;
   ca.appendChild(d); scrollBot();
@@ -476,153 +1023,706 @@ function addAI(html){
 
 function trace(sql,ok){
   const checks=ok
-    ?`<div class="trace-line pass">✓ Identity: sarah.martinez · OrgID = 42</div>
-      <div class="trace-line pass">✓ SQL validated: SELECT only, OrgID=42 enforced</div>
-      <div class="trace-line pass">✓ Azure SQL RLS: fn_OrgFilter confirmed Org 42</div>
-      <div class="trace-line pass">✓ PHI masking: last names truncated</div>`
-    :`<div class="trace-line blocked">✗ Cross-org query: target OrgID ≠ 42</div>
-      <div class="trace-line blocked">✗ Blocked at middleware — SQL never executed</div>
-      <div class="trace-line blocked">✗ Azure SQL RLS would block at DB layer regardless</div>`;
+    ?`<div class="trace-line pass">✓ Identity: shruti.singh · OrgID = 42</div><div class="trace-line pass">✓ SQL: SELECT only, OrgID=42 enforced</div><div class="trace-line pass">✓ Azure SQL RLS: fn_OrgFilter confirmed Org 42</div><div class="trace-line pass">✓ PHI masking applied: full names → first initial + *** (e.g. "James W." → "J*** W.")</div>`
+    :`<div class="trace-line blocked">✗ Cross-org query: target OrgID ≠ 42</div><div class="trace-line blocked">✗ Blocked at middleware — SQL never executed</div><div class="trace-line blocked">✗ Azure SQL RLS blocks at DB layer regardless</div>`;
   return `<div class="security-trace"><div class="trace-title">🔐 Security Trace — Azure RLS</div><div class="trace-line sql">SQL: ${sql}</div>${checks}<div class="trace-line">Logged → Azure Monitor · ${new Date().toISOString()}</div></div>`;
+}
+
+/* ── CHART ID COUNTER ── */
+let chartIdx = 0;
+const chartInstances = {};
+
+function mkChartId(){ return 'chart_' + (++chartIdx); }
+
+/* ── CHART BUILDER ── */
+function buildChart(id, type, data, options={}){
+  /* Deferred so canvas is in DOM first */
+  setTimeout(()=>{
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
+    if(chartInstances[id]) chartInstances[id].destroy();
+    const defaults = {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display: type!=='bar', labels:{ font:{family:'Inter',size:11}, color:'#4a5568', boxWidth:10, padding:12 } },
+        tooltip:{ titleFont:{family:'Inter',size:11}, bodyFont:{family:'Inter',size:11}, callbacks:{} }
+      },
+      scales: type==='bar'||type==='line' ? {
+        x:{ grid:{color:'rgba(26,43,74,0.06)'}, ticks:{font:{family:'Inter',size:10},color:'#8896a8'} },
+        y:{ grid:{color:'rgba(26,43,74,0.06)'}, ticks:{font:{family:'Inter',size:10},color:'#8896a8'}, beginAtZero:true }
+      } : {}
+    };
+    chartInstances[id] = new Chart(canvas, { type, data, options:{...defaults,...options} });
+  }, 80);
+}
+
+function switchChartType(wrapperId, newType){
+  const wrap = document.getElementById(wrapperId);
+  if(!wrap) return;
+  wrap.querySelectorAll('.ctp').forEach(b=>b.classList.remove('active'));
+  const btn = wrap.querySelector(`.ctp[data-type="${newType}"]`);
+  if(btn) btn.classList.add('active');
+  const rebuildFn = wrap._rebuildFn;
+  if(rebuildFn) rebuildFn(newType);
+}
+
+/* ── CHART RESPONSES ── */
+function buildHousingTrendChart(){
+  const cid = mkChartId();
+  const wid = 'wrap_'+cid;
+  const labels = ['Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25'];
+  const housed  = [32,35,38,41,44,47];
+  const atRisk  = [18,22,19,24,21,24];
+  const newIntake=[8,10,7,12,9,12];
+
+  const html = `
+    <strong style="color:var(--navy)">📈 Housing Outcomes Trend — Last 6 Months</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Monthly placement counts · Rochester Housing · Org 42</div>
+    <div class="chart-wrap" id="${wid}">
+      <div class="chart-header">
+        <div><div class="chart-title">Clients housed per month</div><div class="chart-sub">Oct 2024 – Mar 2025</div></div>
+        <div class="chart-type-pills">
+          <button class="ctp active" data-type="line" onclick="switchChartType('${wid}','line')">Line</button>
+          <button class="ctp" data-type="bar" onclick="switchChartType('${wid}','bar')">Bar</button>
+        </div>
+      </div>
+      <div class="chart-body">
+        <div class="chart-canvas-wrap"><canvas id="${cid}"></canvas></div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Stably housed</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>At risk</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div>New intakes</div>
+        </div>
+        <div class="chart-insight"><strong>AI insight:</strong> Stable housing placements rose 47% over 6 months — from 32 to 47. At-risk numbers have plateaued at 21–24, suggesting a persistent core cohort that needs different intervention. New intake is strong at 12/month.</div>
+      </div>
+    </div>`;
+
+  function rebuild(type){
+    const data = {
+      labels,
+      datasets:[
+        { label:'Stably housed', data:housed,   borderColor:'#10b981', backgroundColor: type==='bar'?'rgba(16,185,129,0.7)':'rgba(16,185,129,0.1)', tension:0.4, fill:type==='line', pointRadius:4, borderWidth:2 },
+        { label:'At risk',       data:atRisk,   borderColor:'#ef4444', backgroundColor: type==='bar'?'rgba(239,68,68,0.7)':'rgba(239,68,68,0.08)',  tension:0.4, fill:false, pointRadius:4, borderWidth:2 },
+        { label:'New intakes',   data:newIntake,borderColor:'#6366f1', backgroundColor: type==='bar'?'rgba(99,102,241,0.7)':'rgba(99,102,241,0.08)',tension:0.4, fill:false, pointRadius:4, borderWidth:2 }
+      ]
+    };
+    buildChart(cid, type, data);
+  }
+
+  setTimeout(()=>{
+    const w = document.getElementById(wid);
+    if(w) w._rebuildFn = rebuild;
+    rebuild('line');
+  }, 90);
+
+  return html;
+}
+
+function buildStatusPieChart(){
+  const cid = mkChartId();
+  const wid = 'wrap_'+cid;
+
+  const html = `
+    <strong style="color:var(--navy)">🥧 Client Status Distribution — Today</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">183 active clients · Rochester Housing · Org 42</div>
+    <div class="chart-wrap" id="${wid}">
+      <div class="chart-header">
+        <div><div class="chart-title">Status breakdown</div><div class="chart-sub">As of ${new Date().toLocaleDateString()}</div></div>
+        <div class="chart-type-pills">
+          <button class="ctp active" data-type="doughnut" onclick="switchChartType('${wid}','doughnut')">Doughnut</button>
+          <button class="ctp" data-type="pie" onclick="switchChartType('${wid}','pie')">Pie</button>
+        </div>
+      </div>
+      <div class="chart-body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center">
+        <div class="chart-canvas-wrap" style="height:200px"><canvas id="${cid}"></canvas></div>
+        <div>
+          <div class="bar-row" style="margin-bottom:8px"><div class="bar-label" style="width:110px">Permanent</div><div class="bar-track"><div class="bar-fill" style="width:49%;background:#10b981"></div></div><div class="bar-val">89</div></div>
+          <div class="bar-row" style="margin-bottom:8px"><div class="bar-label" style="width:110px">Transitional</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:#f05a28"></div></div><div class="bar-val">40</div></div>
+          <div class="bar-row" style="margin-bottom:8px"><div class="bar-label" style="width:110px">Shelter</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:#ef4444"></div></div><div class="bar-val">32</div></div>
+          <div class="bar-row" style="margin-bottom:8px"><div class="bar-label" style="width:110px">In Progress</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:#6366f1"></div></div><div class="bar-val">12</div></div>
+          <div class="bar-row"><div class="bar-label" style="width:110px">New Intake</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#8896a8"></div></div><div class="bar-val">10</div></div>
+        </div>
+      </div>
+      <div class="chart-body" style="padding-top:0">
+        <div class="chart-insight"><strong>AI insight:</strong> 49% of clients are in permanent housing — a strong result. The 17% in shelter are your most time-sensitive group: 3 are approaching the 60-day limit. Transitional housing is healthy at 22% — these clients are on the path to permanent placement.</div>
+      </div>
+    </div>`;
+
+  function rebuild(type){
+    const data = {
+      labels:['Permanent','Transitional','Shelter','In Progress','New Intake'],
+      datasets:[{ data:[89,40,32,12,10], backgroundColor:['#10b981','#f05a28','#ef4444','#6366f1','#8896a8'], borderWidth:0, hoverOffset:6 }]
+    };
+    buildChart(cid, type, data, { plugins:{ legend:{ display:true, position:'bottom', labels:{font:{family:'Inter',size:10},color:'#4a5568',boxWidth:10,padding:10} } } });
+  }
+
+  setTimeout(()=>{ const w=document.getElementById(wid); if(w) w._rebuildFn=rebuild; rebuild('doughnut'); },90);
+  return html;
+}
+
+function buildCaseworkerChart(){
+  const cid = mkChartId();
+  const wid = 'wrap_'+cid;
+
+  const html = `
+    <strong style="color:var(--navy)">📊 Caseworker Performance Comparison</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Outcome rate, avg days to house, at-risk caseload · Org 42</div>
+    <div class="chart-wrap" id="${wid}">
+      <div class="chart-header">
+        <div><div class="chart-title">Performance by caseworker</div><div class="chart-sub">Q1 2025 outcomes</div></div>
+        <div class="chart-type-pills">
+          <button class="ctp active" data-type="bar" onclick="switchChartType('${wid}','bar')">Bar</button>
+          <button class="ctp" data-type="radar" onclick="switchChartType('${wid}','radar')">Radar</button>
+        </div>
+      </div>
+      <div class="chart-body">
+        <div class="chart-canvas-wrap"><canvas id="${cid}"></canvas></div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Outcome rate (%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f05a28"></div>Avg days to house</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>High-risk clients</div>
+        </div>
+        <div class="chart-insight"><strong>AI insight:</strong> R. Thompson achieves 100% stable outcomes in 28 days average — the benchmark for this team. K. Johnson carries the most high-risk clients (3) which is dragging down their outcome rate. This is a caseload distribution problem, not a skills problem. Redistribute 1 high-risk client to M. Davis to rebalance.</div>
+      </div>
+    </div>`;
+
+  function rebuild(type){
+    const isRadar = type==='radar';
+    const data = isRadar ? {
+      labels:['Outcome Rate','Speed (inv.)','Low Risk Load','Contact Freq','Completions'],
+      datasets:[
+        { label:'R. Thompson', data:[100,90,100,88,100], borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.15)', pointBackgroundColor:'#10b981', borderWidth:2 },
+        { label:'M. Davis',    data:[50,65,75,70,80],   borderColor:'#f05a28', backgroundColor:'rgba(240,90,40,0.1)',    pointBackgroundColor:'#f05a28', borderWidth:2 },
+        { label:'K. Johnson',  data:[25,55,20,60,65],   borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.08)',   pointBackgroundColor:'#ef4444', borderWidth:2 }
+      ]
+    } : {
+      labels:['R. Thompson','M. Davis','K. Johnson'],
+      datasets:[
+        { label:'Outcome rate (%)', data:[100,50,25], backgroundColor:'rgba(16,185,129,0.75)', borderRadius:4 },
+        { label:'Avg days to house', data:[28,38,45], backgroundColor:'rgba(240,90,40,0.75)', borderRadius:4 },
+        { label:'High-risk clients', data:[0,1,3], backgroundColor:'rgba(239,68,68,0.75)', borderRadius:4 }
+      ]
+    };
+    const opts = isRadar ? {
+      plugins:{ legend:{ display:true, labels:{font:{family:'Inter',size:10},color:'#4a5568',boxWidth:10} } },
+      scales:{ r:{ grid:{color:'rgba(26,43,74,0.08)'}, ticks:{font:{family:'Inter',size:9},color:'#8896a8',backdropColor:'transparent'}, pointLabels:{font:{family:'Inter',size:10},color:'#4a5568'} } }
+    } : {};
+    buildChart(cid, isRadar?'radar':'bar', data, opts);
+  }
+
+  setTimeout(()=>{ const w=document.getElementById(wid); if(w) w._rebuildFn=rebuild; rebuild('bar'); },90);
+  return html;
+}
+
+function buildAppointmentChart(){
+  const cid = mkChartId();
+  const wid = 'wrap_'+cid;
+  const labels = ['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6','Week 7','Week 8'];
+  const attended= [42,38,45,40,47,43,49,44];
+  const missed  = [8,12,7,11,6,9,5,8];
+
+  const html = `
+    <strong style="color:var(--navy)">📅 Appointment Attendance Trends — Last 8 Weeks</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Attended vs missed · Rochester Housing · Org 42</div>
+    <div class="chart-wrap" id="${wid}">
+      <div class="chart-header">
+        <div><div class="chart-title">Weekly appointment attendance</div><div class="chart-sub">Feb – Apr 2025</div></div>
+        <div class="chart-type-pills">
+          <button class="ctp active" data-type="bar" onclick="switchChartType('${wid}','bar')">Stacked</button>
+          <button class="ctp" data-type="line" onclick="switchChartType('${wid}','line')">Trend</button>
+        </div>
+      </div>
+      <div class="chart-body">
+        <div class="chart-canvas-wrap"><canvas id="${cid}"></canvas></div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Attended</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Missed</div>
+        </div>
+        <div class="chart-insight"><strong>AI insight:</strong> Attendance rate has improved from 84% (Week 1) to 90% (Week 8) — a positive trend. Missed appointments are concentrated on Fridays and in the 3pm–5pm slot. Consider rescheduling high-risk clients to mid-week morning appointments to improve attendance.</div>
+      </div>
+    </div>`;
+
+  function rebuild(type){
+    const isStacked = type==='bar';
+    const data = {
+      labels,
+      datasets:[
+        { label:'Attended', data:attended, backgroundColor: isStacked?'rgba(16,185,129,0.75)':'transparent',  borderColor:'#10b981', fill:!isStacked, tension:0.4, borderWidth:isStacked?0:2, pointRadius:isStacked?0:4, borderRadius:isStacked?4:0 },
+        { label:'Missed',   data:missed,   backgroundColor: isStacked?'rgba(239,68,68,0.65)':'transparent',   borderColor:'#ef4444', fill:!isStacked, tension:0.4, borderWidth:isStacked?0:2, pointRadius:isStacked?0:4, borderRadius:isStacked?4:0 }
+      ]
+    };
+    const opts = isStacked ? { scales:{ x:{ stacked:true, grid:{color:'rgba(26,43,74,0.06)'}, ticks:{font:{family:'Inter',size:10},color:'#8896a8'} }, y:{ stacked:true, grid:{color:'rgba(26,43,74,0.06)'}, ticks:{font:{family:'Inter',size:10},color:'#8896a8'}, beginAtZero:true } }, plugins:{legend:{display:false}} } : {};
+    buildChart(cid, type, data, opts);
+  }
+
+  setTimeout(()=>{ const w=document.getElementById(wid); if(w) w._rebuildFn=rebuild; rebuild('bar'); },90);
+  return html;
 }
 
 function intent(q){
   q=q.toLowerCase();
-  if(q.includes('buffalo')||q.includes('org 17')||q.includes('another org')||q.includes('other org')) return 'blocked';
+  if(q.includes('buffalo')||q.includes('org 17')||q.includes('another org')||q.includes('other org')||
+     q.includes('mary cariola')||q.includes('catholic charities')||q.includes('ibero')||
+     q.includes('pathways community')||q.includes('community action')||
+     q.includes('different org')||q.includes('other org')||
+     /\borg\s*\d+/.test(q)&&!/\borg\s*42\b/.test(q)) return 'blocked';
+  /* ── CROSS-ROLE REQUEST — caseworker asking for other managers/roles data ── */
+  if(q.includes('other manager')||q.includes('other managers')||q.includes('other caseworker')||
+     q.includes('other roles')||q.includes('same org')||q.includes('clients of other')||
+     q.includes('other staff')||q.includes('all managers')||q.includes('different manager')||
+     q.includes('other user')||q.includes('another manager')||q.includes('another caseworker')) return 'role-blocked';
+  /* ── PHI DIRECT REQUEST ── */
+  if(q.includes('ssn')||q.includes('social security')||q.includes('date of birth')||q.includes('dob')||
+     q.includes('give me the')||q.includes('what is the ssn')||q.includes('show me the ssn')||
+     q.includes('passport')||q.includes('medicaid number')||q.includes('insurance number')||
+     (q.includes('phone') && q.includes('client'))||
+     (q.includes('address') && q.includes('client'))) return 'phi-blocked';
+  /* ── SPECIFIC DATA INTENTS — check BEFORE chart so "show me at-risk" hits risk not chart ── */
+  if(q.includes('how do i add')||q.includes('add a new client')||q.includes('add new client')||q.includes('new client intake')||q.includes('intake process')) return 'addclient';
+  if(q.includes('predict')||q.includes('likely')||q.includes('disengage')||q.includes('forecast')) return 'predict';
+  if(q.includes('caseworker')&&!q.includes('chart')&&!q.includes('graph')) return 'caseworker';
   if(q.includes('stable')||q.includes('q1')||q.includes('housed')) return 'q1';
-  if(q.includes('missed')||q.includes('risk')||q.includes('appointment')) return 'risk';
+  if(q.includes('at-risk')||q.includes('at risk')||q.includes('missed')||q.includes('risk')||
+     (q.includes('appointment')&&!q.includes('chart')&&!q.includes('attendance'))) return 'risk';
   if(q.includes('samhsa')||q.includes('grant')||q.includes('report')||q.includes('funder')) return 'grant';
-  if(q.includes('placement')||q.includes('rate')) return 'rate';
+  if(q.includes('placement rate')||q.includes('placement')||q.includes('rate')) return 'rate';
   if(q.includes('how many')||q.includes('total')||q.includes('overview')||q.includes('count')) return 'overview';
+  /* ── CHART INTENTS — only if no specific data intent matched ── */
+  if(q.includes('chart')||q.includes('graph')||q.includes('plot')||q.includes('visual')){
+    if(q.includes('status')||q.includes('breakdown')||q.includes('distribut')||q.includes('pie')) return 'chart-pie';
+    if(q.includes('caseworker')||q.includes('staff')||q.includes('performance')) return 'chart-caseworker';
+    if(q.includes('appointment')||q.includes('attendance')) return 'chart-appointments';
+    return 'chart-trend';
+  }
+  if(q.includes('trend')&&(q.includes('month')||q.includes('over time')||q.includes('weekly'))) return 'chart-trend';
   return 'list';
 }
 
-function buildReply(i){
-  if(i==='q1'){
-    const stable=DB.clients.filter(c=>c.status==='Stable');
-    const rows=stable.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td>${c.cw}</td><td>${c.lastContact}</td><td>${c.housing}</td><td><span class="status-badge s-stable">● Stable</span></td></tr>`).join('');
-    return `Found <strong style="color:var(--navy)">47 clients</strong> who achieved stable housing in Q1 2025 — <span style="color:var(--green);font-weight:600">↑ 12% vs Q4 2024</span>.
-      <div class="metric-row">
-        <div class="metric-card accent"><div class="metric-label">Stable Housing</div><div class="metric-value">47</div><div class="metric-sub">Q1 2025</div></div>
-        <div class="metric-card"><div class="metric-label">Placement Rate</div><div class="metric-value">62%</div><div class="metric-sub metric-up">↑ 5pts vs target</div></div>
-        <div class="metric-card"><div class="metric-label">Avg Days</div><div class="metric-value">34</div><div class="metric-sub metric-up">↓ 8 days faster</div></div>
-        <div class="metric-card"><div class="metric-label">Total Active</div><div class="metric-value">183</div><div class="metric-sub">clients today</div></div>
-      </div>
-      <div class="result-table">
-        <div class="result-header"><span class="result-title">Stably Housed Clients</span><span class="result-count">Showing ${stable.length} of 47 · Org 42 only</span></div>
-        <table><thead><tr><th>Client ID</th><th>Name</th><th>Caseworker</th><th>Last Contact</th><th>Housing Type</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
-      </div>
-      ${trace("SELECT * FROM Clients WHERE OrgID=42 AND HousingStatus='Stable' AND OutcomeDate BETWEEN '2025-01-01' AND '2025-03-31'",true)}`;
-  }
-  if(i==='risk'){
-    const at=DB.clients.filter(c=>c.missed>=3||c.status==='At Risk');
-    const rows=at.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td style="color:var(--red);font-weight:600">${c.missed}</td><td>${c.cw}</td><td>${c.lastContact}</td><td><span class="status-badge s-risk">● High Risk</span></td></tr>`).join('');
-    return `<span style="color:var(--red);font-weight:700">⚠ ${at.length} clients flagged at-risk</span> — missed 3+ appointments or marked high-risk. Immediate follow-up needed.
-      <div class="result-table">
-        <div class="result-header"><span class="result-title">At-Risk Clients</span><span class="result-count">${at.length} records · Org 42 only</span></div>
-        <table><thead><tr><th>Client ID</th><th>Name</th><th>Missed Appts</th><th>Caseworker</th><th>Last Contact</th><th>Risk</th></tr></thead><tbody>${rows}</tbody></table>
-      </div>
-      <div class="info-box"><strong>Recommended:</strong> K. Johnson's caseload has the highest risk concentration. Schedule outreach calls this week before these clients disengage.</div>
-      ${trace("SELECT * FROM Clients WHERE OrgID=42 AND (MissedAppointments >= 3 OR RiskScore='High')",true)}`;
-  }
-  if(i==='grant'){
-    return `<strong style="color:var(--navy)">SAMHSA Grant Summary — Q1 2025</strong><br><span style="font-size:12px;color:var(--text3)">Auto-generated from IMPOWR · Rochester Housing First · Org 42</span>
-      <div class="metric-row">
-        <div class="metric-card accent"><div class="metric-label">Clients Served</div><div class="metric-value">183</div><div class="metric-sub">unduplicated</div></div>
-        <div class="metric-card"><div class="metric-label">Housed Q1</div><div class="metric-value">47</div><div class="metric-sub metric-up">↑ 12% YoY</div></div>
-        <div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above 80% target</div></div>
-        <div class="metric-card"><div class="metric-label">Cost/Client</div><div class="metric-value">$2,847</div><div class="metric-sub metric-up">↓ 6% vs budget</div></div>
-      </div>
-      <div class="result-table">
-        <div class="result-header"><span class="result-title">SAMHSA Required Metrics</span><span class="result-count">Auto-populated · Ready to export</span></div>
-        <table><thead><tr><th>SAMHSA Metric</th><th>Required</th><th>Achieved</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>Unduplicated clients served</td><td>150+</td><td style="font-weight:600;color:var(--navy)">183</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
-          <tr><td>Housing placement rate</td><td>55%</td><td style="font-weight:600;color:var(--navy)">62%</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
-          <tr><td>90-day housing retention</td><td>80%</td><td style="font-weight:600;color:var(--navy)">84%</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
-          <tr><td>Avg days to placement</td><td>&lt;45 days</td><td style="font-weight:600;color:var(--navy)">34 days</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
-          <tr><td>Mental health assessments</td><td>100%</td><td style="font-weight:600;color:var(--red)">91%</td><td><span class="status-badge s-risk">⚠ Gap: 9%</span></td></tr>
-        </tbody></table>
-      </div>
-      <div class="info-box"><strong>One gap detected:</strong> 17 clients missing mental health assessments. Follow up before SAMHSA deadline. All other metrics exceed requirements — strong case for renewal.</div>
-      ${trace("SELECT metrics FROM GrantReporting WHERE OrgID=42 AND Period='Q1-2025' AND GrantType='SAMHSA'",true)}`;
-  }
-  if(i==='rate'){
-    return `<strong style="color:var(--navy)">Housing Placement Rate — Rochester Housing First</strong>
-      <div class="metric-row">
-        <div class="metric-card accent"><div class="metric-label">Your Rate</div><div class="metric-value">62%</div><div class="metric-sub">Q1 2025</div></div>
-        <div class="metric-card"><div class="metric-label">SAMHSA Target</div><div class="metric-value">55%</div><div class="metric-sub">minimum</div></div>
-        <div class="metric-card"><div class="metric-label">National Avg</div><div class="metric-value">51%</div><div class="metric-sub">sector benchmark</div></div>
-        <div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above benchmark</div></div>
-      </div>
-      <div class="info-box">You outperform the national sector average by <strong>11 percentage points</strong> — compelling evidence for your SAMHSA grant renewal narrative.</div>
-      ${trace("SELECT AVG(PlacementRate) FROM OutcomeMetrics WHERE OrgID=42 AND Period='2025-Q1'",true)}`;
-  }
-  if(i==='overview'){
-    return `Here is your current dashboard for <strong style="color:var(--navy)">Rochester Housing First</strong>:
-      <div class="metric-row">
-        <div class="metric-card accent"><div class="metric-label">Total Clients</div><div class="metric-value">183</div><div class="metric-sub">active cases</div></div>
-        <div class="metric-card"><div class="metric-label">Stably Housed</div><div class="metric-value">89</div><div class="metric-sub metric-up">↑ 62% rate</div></div>
-        <div class="metric-card"><div class="metric-label">At Risk</div><div class="metric-value">24</div><div class="metric-sub" style="color:var(--red)">needs follow-up</div></div>
-        <div class="metric-card"><div class="metric-label">New This Month</div><div class="metric-value">12</div><div class="metric-sub">intakes</div></div>
-      </div>
-      ${trace("SELECT COUNT(*), HousingStatus FROM Clients WHERE OrgID=42 GROUP BY HousingStatus",true)}`;
-  }
-  const rows=DB.clients.slice(0,6).map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td><span class="status-badge ${sc(c.status)}">● ${c.status}</span></td><td>${c.cw}</td><td>${c.lastContact}</td></tr>`).join('');
-  return `Recent clients for <strong style="color:var(--navy)">Rochester Housing First</strong>:
-    <div class="result-table">
-      <div class="result-header"><span class="result-title">Client List</span><span class="result-count">Showing 6 of 183 · Org 42 only</span></div>
-      <table><thead><tr><th>Client ID</th><th>Name</th><th>Status</th><th>Caseworker</th><th>Last Contact</th></tr></thead><tbody>${rows}</tbody></table>
-    </div>
-    ${trace("SELECT TOP 6 * FROM Clients WHERE OrgID=42 ORDER BY LastContact DESC",true)}`;
+/* ── PHI MASKING — real masking applied to all output ── */
+function maskName(name){
+  /* "James W." → "J***  W." — masks first name, keeps initial */
+  return name.replace(/^([A-Za-z])[a-z]+(\s[A-Z]\.)$/, '$1*** $2')
+             .replace(/^([A-Za-z])[a-z]+ ([A-Za-z])[a-z]+$/, '$1*** $2***');
+}
+function maskRow(c){
+  return {...c, name: maskName(c.name)};
 }
 
-function showBlockedAlert(){
-  addMsg('user','Show me all clients from Buffalo Health Services org');
-  addThinking();
-  setTimeout(()=>{
-    removeThinking();
-    const ca=document.getElementById('chatArea');
-    const d=document.createElement('div');
-    d.className='msg';
-    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-    d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">
-      <div class="access-denied">
-        <div class="denied-icon">🚫</div>
-        <div>
-          <div class="denied-title">Access Denied — Cross-Organization Query Blocked</div>
-          <div class="denied-body">You requested data from <strong>Buffalo Health Services (Org ID: 17)</strong>. Your account is authorized only for <strong>Rochester Housing First (Org ID: 42)</strong>.<br><br>
-          Blocked at <strong>two independent security layers:</strong><br>
-          <span style="color:var(--red)">Layer 1:</span> AI middleware rejected — SQL was never generated.<br>
-          <span style="color:var(--red)">Layer 2:</span> Azure SQL RLS would filter all Org 17 rows at the database engine level regardless.</div>
-          <div class="denied-trace">SECURITY EVENT · User: sarah.martinez · OrgID: 42 · Requested: OrgID 17<br>RLS: fn_OrgFilter(17) → ACCESS DENIED — OrgID 17 ≠ SESSION_CONTEXT OrgID 42<br>Logged → Azure Monitor · ${new Date().toISOString()}</div>
+/* ── PII DETECTION ENGINE ── */
+function detectPII(text){
+  const found=[];
+  const ssnM=text.match(/\b(?!000|666|9\d{2})\d{3}-(?!00)\d{2}-(?!0{4})\d{4}\b/);
+  if(ssnM) found.push({type:'SSN',value:ssnM[0],label:'[SSN_1]',cls:'ssn'});
+  const ORG_NAMES = ['autism up','mary cariola','catholic charities','ibero american','pathways community','community action'];
+  const isOrgQuery = ORG_NAMES.some(o => text.toLowerCase().includes(o));
+  const nameM = !isOrgQuery ? text.match(/\b([A-Z][a-z]+\s[A-Z][a-z]+)\b/) : null;
+  if(nameM) found.push({type:'Person',value:nameM[1],label:'[PERSON_1]',cls:'person'});
+  const dobM=text.match(/\b\d{2}\/\d{2}\/\d{4}\b/);
+  if(dobM) found.push({type:'Date of Birth',value:dobM[0],label:'[DATE_1]',cls:'date'});
+  const phoneM=text.match(/\b\d{3}-\d{3}-\d{4}\b/);
+  if(phoneM&&!ssnM) found.push({type:'Phone',value:phoneM[0],label:'[PHONE_1]',cls:'phone'});
+  const emailM=text.match(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b/);
+  if(emailM) found.push({type:'Email',value:emailM[0],label:'[EMAIL_1]',cls:'email'});
+  const medM=text.match(/medicaid\s*(?:id)?\s*[#:]?\s*(\d{6,10})/i);
+  if(medM) found.push({type:'Medicaid ID',value:medM[1],label:'[MEDICAID_1]',cls:'medicaid'});
+  return found;
+}
+
+function buildPIIBanner(original, found){
+  if(found.length===0) return '';
+  let clean=original;
+  found.forEach(f=>{ clean=clean.replace(f.value,f.label); });
+  const tags=found.map(f=>`<span class="pii-tag ${f.cls}">${f.type}: ${f.value}</span>`).join('');
+  return `<div class="pii-banner warning">
+    <div class="pii-icon">🛡️</div>
+    <div>
+      <div class="pii-title">PII Detected & Redacted — Azure Language Service</div>
+      <div class="pii-body">
+        ${found.length} sensitive entity(ies) found in your prompt and removed before reaching GPT-4.1. Real values stored server-side only.
+        <div class="pii-entities">${tags}</div>
+        <div style="margin-top:6px">Sanitised prompt sent to AI: <span class="pii-redacted">"${clean}"</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── ANALYSIS / INTELLIGENCE RESPONSES ── */
+function buildAnalysis(){
+  return `<strong style="color:var(--navy)">🧠 Data Intelligence Report — Rochester Housing</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">AI-generated analysis · Org 42 · Based on live database patterns</div>
+
+    <div class="sparkline-row">
+      <div class="spark-card"><div class="spark-label">Placement trend</div><div class="spark-val">62%</div><div class="spark-trend trend-up">↑ +11pts vs national avg</div></div>
+      <div class="spark-card"><div class="spark-label">Disengagement risk</div><div class="spark-val">24</div><div class="spark-trend trend-down">↑ 3 new this week</div></div>
+      <div class="spark-card"><div class="spark-label">Avg days to house</div><div class="spark-val">34</div><div class="spark-trend trend-up">↓ 8 days faster than Q4</div></div>
+      <div class="spark-card"><div class="spark-label">Caseload balance</div><div class="spark-val">Poor</div><div class="spark-trend trend-down">K. Johnson overloaded</div></div>
+    </div>
+
+    <div class="analysis-card" style="margin-top:12px">
+      <div class="analysis-header">
+        <span class="analysis-header-title">🔍 Key Insights — what the data is telling you</span>
+        <span class="analysis-header-sub">GPT-4.1 analysis · Org 42</span>
+      </div>
+      <div class="analysis-body">
+        <div class="insight-list">
+          <div class="insight-row critical">
+            <div class="insight-icon">🚨</div>
+            <div class="insight-content">
+              <div class="insight-title">Caseload imbalance creating risk</div>
+              <div class="insight-body">K. Johnson carries 3 of your 4 high-risk clients with the highest missed-appointment rate. This is a single point of failure — if K. Johnson is unavailable, these clients have no backup relationship. Consider redistributing Robert A. and Maria L. to M. Davis.</div>
+              <span class="insight-action" onclick="ask('Show me K. Johnson caseload breakdown')">→ View K. Johnson's caseload</span>
+            </div>
+          </div>
+          <div class="insight-row positive">
+            <div class="insight-icon">📈</div>
+            <div class="insight-content">
+              <div class="insight-title">Permanent housing placements accelerating</div>
+              <div class="insight-body">Your average days-to-permanent-housing dropped from 42 days (Q4 2024) to 34 days (Q1 2025) — a 19% improvement. This is driven by R. Thompson's clients who have a 100% stable rate. Thompson's intake approach may be worth replicating across the team.</div>
+              <span class="insight-action" onclick="ask('What is R. Thompson doing differently with client outcomes?')">→ Analyse Thompson's method</span>
+            </div>
+          </div>
+          <div class="insight-row warning">
+            <div class="insight-icon">⏰</div>
+            <div class="insight-content">
+              <div class="insight-title">Shelter clients at 60-day cliff</div>
+              <div class="insight-body">3 clients (David K., Robert A., Jennifer M.) are approaching the 60-day shelter limit within the next 3 weeks. Based on their current engagement pattern, Robert A. is the highest risk of timing out without placement. Immediate housing search escalation recommended.</div>
+              <span class="insight-action" onclick="ask('Show me shelter clients approaching time limits')">→ View shelter deadline clients</span>
+            </div>
+          </div>
+          <div class="insight-row positive">
+            <div class="insight-icon">💡</div>
+            <div class="insight-content">
+              <div class="insight-title">SAMHSA grant renewal position is strong</div>
+              <div class="insight-body">You exceed all 4 measurable SAMHSA targets. Your 62% placement rate is 11 points above the national average. The only gap — 17 missing mental health assessments — can be closed in 2 weeks with targeted outreach. This is an excellent renewal position.</div>
+              <span class="insight-action" onclick="ask('Generate a summary report for our SAMHSA grant renewal')">→ Generate grant report</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div><div class="msg-meta">IMPOWR AI · ${t} · Security event logged</div></div>`;
-    ca.appendChild(d); scrollBot();
-  },1100);
+    </div>
+
+    <div class="analysis-card">
+      <div class="analysis-header"><span class="analysis-header-title">📊 Housing Status Distribution</span></div>
+      <div class="analysis-body">
+        <div class="mini-chart">
+          <div class="bar-row"><div class="bar-label">Permanent</div><div class="bar-track"><div class="bar-fill" style="width:49%;background:#10b981"></div></div><div class="bar-val">89</div></div>
+          <div class="bar-row"><div class="bar-label">Transitional</div><div class="bar-track"><div class="bar-fill" style="width:22%;background:#f59e0b"></div></div><div class="bar-val">40</div></div>
+          <div class="bar-row"><div class="bar-label">Shelter</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:#f05a28"></div></div><div class="bar-val">32</div></div>
+          <div class="bar-row"><div class="bar-label">In Progress</div><div class="bar-track"><div class="bar-fill" style="width:7%;background:#6366f1"></div></div><div class="bar-val">12</div></div>
+          <div class="bar-row"><div class="bar-label">New Intake</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#8896a8"></div></div><div class="bar-val">10</div></div>
+        </div>
+      </div>
+    </div>
+`;
+}
+
+function buildPrediction(){
+  return `<strong style="color:var(--navy)">🔮 Disengagement Risk Predictions — Next 30 Days</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">AI predictive model · Based on missed appointments, contact frequency, housing instability patterns</div>
+
+    <div class="analysis-card">
+      <div class="analysis-header">
+        <span class="analysis-header-title">Clients predicted to disengage — ranked by risk</span>
+        <span class="analysis-header-sub">Model confidence: 87%</span>
+      </div>
+      <div class="analysis-body">
+        <div class="insight-list">
+          <div class="insight-row critical">
+            <div class="insight-icon">🔴</div>
+            <div class="insight-content">
+              <div class="insight-title">Robert A. (C-1134) <span class="pred-badge pred-high">● High risk · 91% confidence</span></div>
+              <div class="insight-body"><strong>Signals:</strong> 4 missed appointments in 18 days, last contact 17 days ago, shelter placement expiry in 21 days, no housing referral active. Historical pattern matches 8 previous disengagements in our dataset. <strong>Recommended action:</strong> Assign a peer support worker and schedule a home visit within 48 hours.</div>
+            </div>
+          </div>
+          <div class="insight-row critical">
+            <div class="insight-icon">🔴</div>
+            <div class="insight-content">
+              <div class="insight-title">Maria L. (C-1087) <span class="pred-badge pred-high">● High risk · 78% confidence</span></div>
+              <div class="insight-body"><strong>Signals:</strong> 3 consecutive missed appointments, 14-day contact gap, transitional housing lease ending in 35 days. Pattern indicates pre-disengagement withdrawal. <strong>Recommended action:</strong> Caseworker K. Johnson should make direct call today and initiate housing search escalation.</div>
+            </div>
+          </div>
+          <div class="insight-row warning">
+            <div class="insight-icon">🟡</div>
+            <div class="insight-content">
+              <div class="insight-title">Jennifer M. (C-1156) <span class="pred-badge pred-med">● Medium risk · 54% confidence</span></div>
+              <div class="insight-body"><strong>Signals:</strong> 2 missed appointments, engagement dropping from weekly to biweekly, transitional housing. Not critical yet but trending toward risk. Monitor weekly. <strong>Recommended action:</strong> Schedule check-in call next week.</div>
+            </div>
+          </div>
+          <div class="insight-row positive">
+            <div class="insight-icon">🟢</div>
+            <div class="insight-content">
+              <div class="insight-title">Remaining 5 clients <span class="pred-badge pred-low">● Low risk · stable</span></div>
+              <div class="insight-body">James W., S*** P., Michael T., David K., Lisa G. all show stable or improving engagement patterns. No intervention needed beyond routine check-ins.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:10px"><strong>How the model works:</strong> The prediction model scores each client on 6 factors — missed appointment rate, days since last contact, housing stability, case plan progress, service referral status, and historical disengagement pattern. Weights are calibrated on 2 years of IMPOWR outcome data across similar organizations.</div>
+`;
+}
+
+function buildCaseworker(){
+  return `<strong style="color:var(--navy)">📊 Caseworker Performance Analysis — Rochester Housing</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">AI analysis of outcomes by caseworker · Not just counts — quality of outcomes</div>
+
+    <div class="metric-row">
+      <div class="metric-card accent"><div class="metric-label">Best performer</div><div class="metric-value">Thompson</div><div class="metric-sub">100% stable rate</div></div>
+      <div class="metric-card"><div class="metric-label">Avg days to house</div><div class="metric-value">28</div><div class="metric-sub metric-up">Thompson: 28 days</div></div>
+      <div class="metric-card"><div class="metric-label">Highest caseload</div><div class="metric-value">K. Johnson</div><div class="metric-sub" style="color:var(--red)">3 high-risk clients</div></div>
+      <div class="metric-card"><div class="metric-label">Team avg outcome</div><div class="metric-value">62%</div><div class="metric-sub metric-up">↑ above 55% target</div></div>
+    </div>
+
+    <div class="analysis-card" style="margin-top:12px">
+      <div class="analysis-header"><span class="analysis-header-title">📈 Outcome rates by caseworker</span></div>
+      <div class="analysis-body">
+        <div class="mini-chart">
+          <div class="bar-row"><div class="bar-label">R. Thompson</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#10b981"></div></div><div class="bar-val">100%</div></div>
+          <div class="bar-row"><div class="bar-label">M. Davis</div><div class="bar-track"><div class="bar-fill" style="width:50%;background:#f05a28"></div></div><div class="bar-val">50%</div></div>
+          <div class="bar-row"><div class="bar-label">K. Johnson</div><div class="bar-track"><div class="bar-fill" style="width:25%;background:#ef4444"></div></div><div class="bar-val">25%</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analysis-card">
+      <div class="analysis-header"><span class="analysis-header-title">🔍 AI Insight — what's driving the difference</span></div>
+      <div class="analysis-body">
+        <div class="insight-list">
+          <div class="insight-row positive">
+            <div class="insight-icon">⭐</div>
+            <div class="insight-content">
+              <div class="insight-title">R. Thompson — what they do differently</div>
+              <div class="insight-body">Thompson's clients average contact every 6.2 days vs team average of 11.4 days. All 3 clients have active housing referrals within 7 days of intake. Thompson also completes mental health assessments at 100% vs team average of 91%. <strong>Recommendation:</strong> Document Thompson's intake protocol and use as team training baseline.</div>
+            </div>
+          </div>
+          <div class="insight-row critical">
+            <div class="insight-icon">⚠️</div>
+            <div class="insight-content">
+              <div class="insight-title">K. Johnson — caseload concern</div>
+              <div class="insight-body">K. Johnson has the 3 highest-risk clients simultaneously, with the longest contact gaps (avg 14.5 days). This is a capacity issue, not a performance issue — the caseload distribution is uneven. <strong>Recommendation:</strong> Redistribute 1-2 clients to balance risk across the team before burnout or disengagement occurs.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+`;
+}
+
+function buildReply(i){
+  if(i==='chart-trend')       return buildHousingTrendChart();
+  if(i==='chart-pie')         return buildStatusPieChart();
+  if(i==='chart-caseworker')  return buildCaseworkerChart();
+  if(i==='chart-appointments')return buildAppointmentChart();
+  if(i==='addclient'){
+    return `<strong style="color:var(--navy)">➕ How to add a new client — Rochester Housing</strong>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Step-by-step intake process · Org 42 · All data scoped by Azure RLS</div>
+    <div class="insight-list">
+      <div class="insight-row positive">
+        <div class="insight-icon" style="font-size:16px">1️⃣</div>
+        <div class="insight-content">
+          <div class="insight-title">Go to Clients → New Intake</div>
+          <div class="insight-body">From the left sidebar, click <strong>Clients</strong> then hit the <strong>+ New Client</strong> button in the top right. This opens the intake form scoped to Org 42.</div>
+        </div>
+      </div>
+      <div class="insight-row positive">
+        <div class="insight-icon" style="font-size:16px">2️⃣</div>
+        <div class="insight-content">
+          <div class="insight-title">Fill in basic information</div>
+          <div class="insight-body">Enter the client's name, date of birth, contact details, and referral source. Required fields are marked with an asterisk. DOB is stored encrypted and masked in all AI outputs.</div>
+        </div>
+      </div>
+      <div class="insight-row positive">
+        <div class="insight-icon" style="font-size:16px">3️⃣</div>
+        <div class="insight-content">
+          <div class="insight-title">Assign housing status & caseworker</div>
+          <div class="insight-body">Select the initial housing status (Shelter / Transitional / New Intake) and assign a caseworker. The caseworker assignment controls RLS — only they can see this client's full record.</div>
+        </div>
+      </div>
+      <div class="insight-row positive">
+        <div class="insight-icon" style="font-size:16px">4️⃣</div>
+        <div class="insight-content">
+          <div class="insight-title">Complete required assessments</div>
+          <div class="insight-body">SAMHSA and HUD require a mental health assessment and housing history at intake. IMPOWR will flag the record as incomplete until these are done — this protects your grant compliance.</div>
+        </div>
+      </div>
+      <div class="insight-row positive">
+        <div class="insight-icon" style="font-size:16px">5️⃣</div>
+        <div class="insight-content">
+          <div class="insight-title">Save — client appears in your caseload immediately</div>
+          <div class="insight-body">Once saved, the new client is visible in your AI assistant. You can ask "show me my at-risk clients" and they will appear if flagged. The record is logged to Azure Monitor with a creation timestamp.</div>
+        </div>
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:12px"><strong>Tip:</strong> You can also ask me — "show me clients I added this week" or "which of my new intakes are missing assessments" and I'll pull the data instantly.</div>`;
+  }
+  if(i==='analysis') return buildAnalysis();
+  if(i==='predict')  return buildPrediction();
+  if(i==='caseworker') return buildCaseworker();
+
+  /* ── CROSS-ROLE REQUEST BLOCKED ── */
+  if(i==='role-blocked'){
+    return `<div class="access-denied">
+      <div class="denied-icon">🚫</div>
+      <div>
+        <div class="denied-title">Access Denied — Role-Based Access Control (RBAC)</div>
+        <div class="denied-body">
+          Your role as <strong>Program Manager · Org 42</strong> does not permit viewing client records scoped to other staff members' caseloads via the AI interface.<br><br>
+          <span style="color:#dc2626;font-weight:600">Why this is blocked:</span><br>
+          In IMPOWR, each user's data scope is enforced by two independent layers:<br>
+          <span style="color:#dc2626">Layer 1 — Azure AD Role Claim:</span> Your JWT token carries <code style="background:rgba(239,68,68,0.08);padding:1px 5px;border-radius:3px;font-size:11px">role=manager, scopedTo=own_caseload</code>. The AI middleware reads this and rejects cross-role queries before SQL is generated.<br>
+          <span style="color:#dc2626">Layer 2 — Azure SQL RLS:</span> The database predicate <code style="background:rgba(239,68,68,0.08);padding:1px 5px;border-radius:3px;font-size:11px">fn_RoleFilter()</code> checks both OrgID <em>and</em> AssignedCaseworkerID, returning only rows matching your session context regardless of what SQL is sent.<br><br>
+          <span style="color:#059669;font-weight:600">What you can access:</span><br>
+          • Your own assigned clients — <em>"Show me my at-risk clients"</em><br>
+          • Org-wide aggregated metrics — <em>"What is our overall placement rate?"</em><br>
+          • Full client records via the secure <strong>Client Records module</strong> with audit trail
+        </div>
+        <div class="denied-trace">RBAC_BLOCK · Role: manager · Requested: cross-role client data · OrgID: 42<br>Azure AD claim: scopedTo=own_caseload · fn_RoleFilter() → ACCESS DENIED for CaseworkerID ≠ session user<br>Logged → Azure Monitor · ${new Date().toISOString()}</div>
+      </div>
+    </div>
+    <div style="margin-top:10px;padding:10px 14px;background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.2);border-left:3px solid #1a2b4a;border-radius:0 8px 8px 0;font-size:12px;color:#1a2b4a;line-height:1.65">
+      <strong>How Azure enforces this:</strong> Azure SQL Row-Level Security supports multi-column predicates — the <code style="font-family:Courier New;font-size:10px;background:rgba(26,43,74,0.08);padding:1px 5px;border-radius:3px">fn_RoleFilter</code> function checks <code style="font-family:Courier New;font-size:10px;background:rgba(26,43,74,0.08);padding:1px 5px;border-radius:3px">SESSION_CONTEXT(OrgID)</code> AND <code style="font-family:Courier New;font-size:10px;background:rgba(26,43,74,0.08);padding:1px 5px;border-radius:3px">SESSION_CONTEXT(UserID)</code> simultaneously. A caseworker's session can only ever return rows where both their OrgID and their UserID match — making cross-role data access physically impossible at the database engine level.
+    </div>`;
+  }
+
+  /* ── PHI DIRECT REQUEST BLOCKED ── */
+  if(i==='phi-blocked'){
+    return `<div class="access-denied">
+      <div class="denied-icon">🛡️</div>
+      <div>
+        <div class="denied-title">PHI Request Blocked — Direct Sensitive Data Access Denied</div>
+        <div class="denied-body">
+          Your query requested a <strong>directly identifiable sensitive field</strong> (SSN, date of birth, phone number, address, or insurance number). IMPOWR AI is configured to <strong>never return raw PHI fields</strong> — even to authenticated users of the same organization.<br><br>
+          <span style="color:#059669;font-weight:600">What you can do instead:</span><br>
+          • Ask for <em>aggregated outcomes</em> — "How many clients are at risk?"<br>
+          • Ask for <em>status information</em> — "Show me Robert A.'s housing status"<br>
+          • Access full client records through the <strong>secure Client Records module</strong> with a full audit trail
+        </div>
+        <div class="denied-trace">PHI_BLOCK · Field requested: SSN/direct-identifier · User: shruti.singh · OrgID: 42<br>Policy: HIPAA minimum-necessary standard — raw PHI not returned via AI interface<br>Logged → Azure Monitor · ${new Date().toISOString()}</div>
+      </div>
+    </div>`;
+  }
+
+  if(i==='q1'){
+    const stable=DB.clients.filter(c=>c.status==='Stable').map(maskRow);
+    const rows=stable.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td>${c.cw}</td><td>${c.lastContact}</td><td>${c.housing}</td><td><span class="status-badge s-stable">● Stable</span></td></tr>`).join('');
+    return `Found <strong style="color:var(--navy)">47 clients</strong> who achieved stable housing in Q1 2025 — <span style="color:var(--green);font-weight:600">↑ 12% vs Q4 2024</span>.
+      <div class="metric-row"><div class="metric-card accent"><div class="metric-label">Stable Housing</div><div class="metric-value">47</div><div class="metric-sub">Q1 2025</div></div><div class="metric-card"><div class="metric-label">Placement Rate</div><div class="metric-value">62%</div><div class="metric-sub metric-up">↑ 5pts vs target</div></div><div class="metric-card"><div class="metric-label">Avg Days</div><div class="metric-value">34</div><div class="metric-sub metric-up">↓ 8 days faster</div></div><div class="metric-card"><div class="metric-label">Total Active</div><div class="metric-value">183</div><div class="metric-sub">clients today</div></div></div>
+      <div class="result-table"><div class="result-header"><span class="result-title">Stably Housed Clients</span><span class="result-count">Showing ${stable.length} of 47 · Org 42 only · Names masked per HIPAA</span></div><table><thead><tr><th>Client ID</th><th>Name</th><th>Caseworker</th><th>Last Contact</th><th>Housing Type</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></div>
+`;
+  }
+  if(i==='risk'){
+    const at=DB.clients.filter(c=>c.missed>=3||c.status==='At Risk').map(maskRow);
+    const rows=at.map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td style="color:var(--red);font-weight:600">${c.missed}</td><td>${c.cw}</td><td>${c.lastContact}</td><td><span class="status-badge s-risk">● High Risk</span></td></tr>`).join('');
+    return `<span style="color:var(--red);font-weight:700">⚠ ${at.length} clients flagged at-risk</span> — missed 3+ appointments or marked high-risk.
+      <div class="result-table"><div class="result-header"><span class="result-title">At-Risk Clients</span><span class="result-count">${at.length} records · Org 42 only · Names masked per HIPAA</span></div><table><thead><tr><th>Client ID</th><th>Name</th><th>Missed Appts</th><th>Caseworker</th><th>Last Contact</th><th>Risk</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="info-box"><strong>Recommended:</strong> K. Johnson's caseload has the highest risk concentration. Schedule outreach calls this week.</div>
+`;
+  }
+  if(i==='grant'){
+    return `<strong style="color:var(--navy)">SAMHSA Grant Summary — Q1 2025</strong><br><span style="font-size:12px;color:var(--text3)">Auto-generated · Rochester Housing · Org 42</span>
+      <div class="metric-row"><div class="metric-card accent"><div class="metric-label">Clients Served</div><div class="metric-value">183</div><div class="metric-sub">unduplicated</div></div><div class="metric-card"><div class="metric-label">Housed Q1</div><div class="metric-value">47</div><div class="metric-sub metric-up">↑ 12% YoY</div></div><div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above target</div></div><div class="metric-card"><div class="metric-label">Cost/Client</div><div class="metric-value">$2,847</div><div class="metric-sub metric-up">↓ 6% vs budget</div></div></div>
+      <div class="result-table"><div class="result-header"><span class="result-title">SAMHSA Required Metrics</span><span class="result-count">Auto-populated · Ready to export</span></div><table><thead><tr><th>SAMHSA Metric</th><th>Required</th><th>Achieved</th><th>Status</th></tr></thead><tbody>
+        <tr><td>Unduplicated clients served</td><td>150+</td><td style="font-weight:600;color:var(--navy)">183</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
+        <tr><td>Housing placement rate</td><td>55%</td><td style="font-weight:600;color:var(--navy)">62%</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
+        <tr><td>90-day housing retention</td><td>80%</td><td style="font-weight:600;color:var(--navy)">84%</td><td><span class="status-badge s-stable">✓ Met</span></td></tr>
+        <tr><td>Avg days to placement</td><td>&lt;45 days</td><td style="font-weight:600;color:var(--navy)">34 days</td><td><span class="status-badge s-stable">✓ Exceeded</span></td></tr>
+        <tr><td>Mental health assessments</td><td>100%</td><td style="font-weight:600;color:var(--red)">91%</td><td><span class="status-badge s-risk">⚠ Gap: 9%</span></td></tr>
+      </tbody></table></div>
+      <div class="info-box"><strong>One gap detected:</strong> 17 clients missing mental health assessments. Follow up before SAMHSA deadline. All other metrics exceed requirements.</div>
+`;
+  }
+  if(i==='rate'){
+    return `<strong style="color:var(--navy)">Housing Placement Rate — Rochester Housing</strong>
+      <div class="metric-row"><div class="metric-card accent"><div class="metric-label">Your Rate</div><div class="metric-value">62%</div><div class="metric-sub">Q1 2025</div></div><div class="metric-card"><div class="metric-label">SAMHSA Target</div><div class="metric-value">55%</div><div class="metric-sub">minimum</div></div><div class="metric-card"><div class="metric-label">National Avg</div><div class="metric-value">51%</div><div class="metric-sub">sector benchmark</div></div><div class="metric-card"><div class="metric-label">Retention (90d)</div><div class="metric-value">84%</div><div class="metric-sub metric-up">above benchmark</div></div></div>
+      <div class="info-box">You outperform the national sector average by <strong>11 percentage points</strong> — compelling evidence for your SAMHSA grant renewal.</div>
+`;
+  }
+  if(i==='overview'){
+    return `Here is your current dashboard for <strong style="color:var(--navy)">Rochester Housing</strong>:
+      <div class="metric-row"><div class="metric-card accent"><div class="metric-label">Total Clients</div><div class="metric-value">183</div><div class="metric-sub">active cases</div></div><div class="metric-card"><div class="metric-label">Stably Housed</div><div class="metric-value">89</div><div class="metric-sub metric-up">↑ 62% rate</div></div><div class="metric-card"><div class="metric-label">At Risk</div><div class="metric-value">24</div><div class="metric-sub" style="color:var(--red)">needs follow-up</div></div><div class="metric-card"><div class="metric-label">New This Month</div><div class="metric-value">12</div><div class="metric-sub">intakes</div></div></div>
+`;
+  }
+  const rows=DB.clients.slice(0,6).map(maskRow).map(c=>`<tr><td style="color:var(--navy);font-weight:500">${c.id}</td><td>${c.name}</td><td><span class="status-badge ${sc(c.status)}">● ${c.status}</span></td><td>${c.cw}</td><td>${c.lastContact}</td></tr>`).join('');
+  return `Recent clients for <strong style="color:var(--navy)">Rochester Housing</strong>:
+    <div class="result-table"><div class="result-header"><span class="result-title">Client List</span><span class="result-count">Showing 6 of 183 · Org 42 only · Names masked per HIPAA</span></div><table><thead><tr><th>Client ID</th><th>Name</th><th>Status</th><th>Caseworker</th><th>Last Contact</th></tr></thead><tbody>${rows}</tbody></table></div>
+`;
+}
+
+function showBlockedAlert(q){
+  if(document.getElementById('page-ai').classList.contains('active')){
+    addThinking();
+    setTimeout(()=>{
+      removeThinking();
+      const orgMatch = q && q.match(/org\s*(\d+)/i);
+      const orgNum = orgMatch ? orgMatch[1] : '??';
+      const orgLabel = orgNum !== '??' ? `Org ID: ${orgNum}` : 'another organization';
+      const ca=document.getElementById('chatArea');
+      const d=document.createElement('div'); d.className='msg';
+      const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      d.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">
+        <div class="access-denied"><div class="denied-icon">🚫</div><div>
+          <div class="denied-title">Access Denied — Cross-Organization Query Blocked</div>
+          <div class="denied-body">You requested data from <strong>${orgLabel}</strong>. You are authorized for <strong>Rochester Housing (Org ID: 42)</strong> only.<br><br>
+          <span style="color:var(--red)">Layer 1:</span> AI middleware rejected — SQL never generated.<br>
+          <span style="color:var(--red)">Layer 2:</span> Azure SQL RLS blocks all non-Org-42 rows at the engine level regardless.</div>
+          <div class="denied-trace">SECURITY EVENT · shruti.singh · OrgID: 42 · Requested: ${orgLabel}<br>fn_OrgFilter() → ACCESS DENIED · Logged → Azure Monitor · ${new Date().toISOString()}</div>
+        </div></div>
+      </div><div class="msg-meta">IMPOWR AI · ${t} · Security event logged</div></div>`;
+      ca.appendChild(d); scrollBot();
+    },1100);
+  }
 }
 
 let busy=false;
-
 async function sendQuery(){
   if(busy) return;
   const inp=document.getElementById('queryInput');
-  const q=inp.value.trim();
-  if(!q) return;
+  const q=inp.value.trim(); if(!q) return;
   inp.value=''; inp.style.height='auto';
   busy=true; document.getElementById('sendBtn').disabled=true;
-  addMsg('user',q);
+
+  /* ── PII CHECK BEFORE ANYTHING ELSE ── */
+  const piiFound=detectPII(q);
+  const displayQ = piiFound.length>0
+    ? q.replace(piiFound[0]?.value||'XXXXXXX', `<span style="background:rgba(245,158,11,0.15);color:#b45309;padding:1px 4px;border-radius:3px;font-size:11px">${piiFound[0]?.value}</span>`)
+    : q;
+
+  /* Show user message — if PII found, show with redacted highlight */
+  hideWelcome();
+  const ca=document.getElementById('chatArea');
+  const um=document.createElement('div'); um.className='msg user';
+  const t0=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  um.innerHTML=`<div class="msg-avatar av-user">SS</div><div class="msg-content"><div class="msg-bubble bubble-user">${q}</div><div class="msg-meta">${t0} · Shruti Singh</div></div>`;
+  ca.appendChild(um); scrollBot();
+
+  /* If PII found — show the filter banner immediately as a system message */
+  if(piiFound.length>0){
+    await new Promise(r=>setTimeout(r,400));
+    const pd=document.createElement('div'); pd.className='msg';
+    pd.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content">${buildPIIBanner(q,piiFound)}</div>`;
+    ca.appendChild(pd); scrollBot();
+    await new Promise(r=>setTimeout(r,500));
+  }
+
   addThinking();
   const i=intent(q);
-  await new Promise(r=>setTimeout(r,i==='blocked'?900:1300+Math.random()*500));
-  if(i==='blocked'){
+  const thinkTime = i==='blocked'?900 : i==='analysis'||i==='predict'||i==='caseworker' ? 2000+Math.random()*600 : i.startsWith('chart') ? 1200+Math.random()*400 : 1300+Math.random()*500;
+  const thinkLabel = i.startsWith('chart') ? 'Querying database → Building chart data → Rendering...' : i==='analysis'||i==='predict'||i==='caseworker' ? 'Running intelligence analysis → Identifying patterns...' : 'Translating to SQL → Verifying Org 42 → Executing...';
+  const tl = document.getElementById('thinkLabel');
+  if(tl) tl.textContent = thinkLabel;
+  await new Promise(r=>setTimeout(r,thinkTime));
+
+  if(i==='blocked'){ removeThinking(); showBlockedAlert(q); }
+  else {
     removeThinking();
-    showBlockedAlert();
-    busy=false; document.getElementById('sendBtn').disabled=false;
-    return;
+    const am=document.createElement('div'); am.className='msg';
+    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const label = (i==='analysis'||i==='predict'||i==='caseworker') ? 'IMPOWR AI · Intelligence Layer · ' : 'IMPOWR AI · ';
+    am.innerHTML=`<div class="msg-avatar av-ai">IP</div><div class="msg-content"><div class="msg-bubble bubble-ai">${buildReply(i)}</div><div class="msg-meta">${label}${t} · Azure GPT-4.1 · Org 42 scoped</div></div>`;
+    ca.appendChild(am); scrollBot();
   }
-  addAI(buildReply(i));
+
   busy=false; document.getElementById('sendBtn').disabled=false;
 }
 </script>
